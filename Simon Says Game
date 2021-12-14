@@ -1,0 +1,967 @@
+using System;
+using System.Threading;
+using System.IO;
+using System.Collections.Generic;
+
+/*
+Game Plan
+Simon says with an easy, normal and hard mode.
+Simon says is a sequence memory game, you have to remember a pattern consisting of 4 different colours with matching sounds, our version will be purely text based, so no sounds and the colours will be replaced with the numbers 1-4.
+All our gamemodes par unlimited will host 20 levels.
+There are 4 different game modes
+Easy mode will be simon says gameplay with one less colour, 3 in total.
+Normal mode will be normal, 4 colour, simon says gameplay.
+Difficult mode will be simon says gameplay with one extra colour, 5 in total.
+Unlimited mode will be normal simon says gameplay with unlmited levels.
+*/
+
+class MainClass
+{
+  public static void Main()
+  {
+    Console.Clear();
+    Console.WriteLine("Hello!");
+    Console.WriteLine("And welcome to Max and Alfie's Simon Says Game!");
+    Console.WriteLine("[Press any key to continue]");
+    Console.ReadKey();
+    MainMenu();
+  }
+  
+  //main menu
+  public static void MainMenu()
+  {
+    Console.Clear();
+    Console.WriteLine("What mode would you like to play?");
+    Console.WriteLine("1 --> (E)asy");
+    Console.WriteLine("2 --> (N)ormal");
+    Console.WriteLine("3 --> (D)ifficult");
+    Console.WriteLine("4 --> (U)nlimited");
+    Console.WriteLine("5 --> (L)eaderboard");
+    Console.WriteLine("6 --> (I)nstructions");
+    Console.WriteLine("7 --> (Q)uit");
+    string GameChoice = Console.ReadLine();
+    if (GameChoice == "")
+    {
+      MainMenu(); //backup incase a blank input is put in
+    }
+    else
+    {
+      GameChoice = GameChoice.ToUpper();
+      GameChoice = GameChoice.Substring(0,1);
+      if (GameChoice == "1" || GameChoice == "E")
+      {
+        EasyMode();
+      }
+      else if (GameChoice == "2" || GameChoice == "N")
+      {
+        NormalMode();
+      }
+      else if (GameChoice == "3" || GameChoice == "D")
+      {
+        DifficultMode();
+      }
+      else if (GameChoice == "4" || GameChoice == "U")
+      {
+        UnlimitedMode();
+      }
+      else if (GameChoice == "5" || GameChoice == "L")
+      {
+        DisplayLeaderBoard();
+      }
+      else if (GameChoice == "6" || GameChoice == "I")
+      {
+        Instructions();
+      }
+      else if (GameChoice == "7" || GameChoice == "Q")
+      {
+        Console.Clear();
+        System.Environment.Exit(0);
+      }
+      else
+      {
+        MainMenu(); //back up
+      }
+    }
+    MainMenu(); //back up
+  }
+  
+  public static void Instructions()
+  {
+    Console.Clear(); //pretty obvious what this is
+    Console.WriteLine("              ========[How to Play]========");
+    Console.WriteLine("• First you will choose a game mode:");
+    Console.WriteLine("     - Easy Mode, this has 3 different segments and will give you 7 points");
+    Console.WriteLine("     - Normal Mode, this has 4 different segments and will give you 10 points");
+    Console.WriteLine("     - Difficult Mode, this has 5 different segments and will give you 15 points");
+    Console.WriteLine("     - Unlimeted Mode, this has 4 different segments and will give you more points the further you get into it");
+    Console.WriteLine("• Each round, the game will diplay the sequence, lighting up the selected segment, with each round that passes, one more turn will be added onto the end");
+    Console.WriteLine("• Once it is done displaying the sequence, you will then get the option to input the sequence, make sure you press enter between each input");
+    Console.WriteLine("• Once you've input all the  values, you will automatically move onto the next round");
+    Console.WriteLine("• In the first 3 modes, once you complete 20 rounds you win!");
+    
+    Console.WriteLine("\n[Press any key to return to Menu]");
+    Console.ReadKey();
+    MainMenu();
+  }
+  
+  public static int[] EasyGen(int[] Segment)
+  {
+    //3 colours, randomly generated for each turn, 20 levels.
+    Random Random = new Random(); //importing random into the workspace
+    for (int r = 0; r < 20; r++) //r for random
+    {
+      int SegmentNum = Random.Next(1,4); //generating a number between 1 and 3, each number relating to each segment 
+      Segment[r] = SegmentNum; //adding the segment number to a one dimensional list
+    }
+    return Segment;
+  }
+
+  public static void EasyMode() 
+  {
+    int[] Segment = new int[20]; //creating an array, length of 20, to store the order of the game
+    Segment = EasyGen(Segment); //calling in the generated game
+    int Score = 0;
+    int TimeDelay1 = 1000; //setting constants for the time delay, this means it can be changed from one place in the code
+    int r = 0;
+    int p = 0;
+    string GameMode = "Easy";
+    string WinLose = "Lose";
+    
+    //this loop makes the code repeat a total of 20 times for a 20 round game
+    for (int s = 1; s < 21; s++) //s for sequence
+    {
+      //this goes through purely to display the 'simon' game on screen.
+      for (r = 0; r < s; r++)
+      {
+        Console.Clear();
+        Console.WriteLine("Current Score: "+Score+"\n");
+        EasyBlank();
+        Thread.Sleep(TimeDelay1);
+        Console.Clear();
+        Console.WriteLine("Current Score: "+Score+"\n");
+        if (Segment[r] == 1) 
+        {
+          EasyOne(); //displays the ASCII art of simon says with partition 1 filled
+        }
+        else if (Segment[r] == 2) 
+        {
+          EasyTwo(); //displays the ASCII art of simon says with partition 2 filled
+        }
+        else if (Segment[r] == 3) 
+        {
+          EasyThree(); //displays the ASCII art of simon says with partition 3 filled
+        }
+        Thread.Sleep(TimeDelay1);
+        Console.Clear();
+        Console.WriteLine("Current Score: "+Score+"\n");
+      }
+      //this loops then gets the user to enter the sequence
+      for (p = 0; p < s; p++)
+      {
+        Console.Clear();
+        Console.WriteLine("Current Score: "+Score+"\n");
+        EasyBlank();
+        Console.WriteLine("Enter the sequence, pressing enter after every number:");
+        string UserInputStr = Console.ReadLine();
+        int UserInputInt = 0;
+        try
+        {
+          UserInputInt = Int32.Parse(UserInputStr); //converting the input to an integer
+        }
+        catch(Exception e)
+        {
+          WinLose = "Lose";
+          Console.Clear();
+          GameOver();
+          string ScoreString = Convert.ToString(Score);
+          while(ScoreString.Length < 6)
+          {
+            ScoreString = "0"+ScoreString;
+          }
+          StoringToFile(ScoreString, GameMode, WinLose);
+        }
+        if (UserInputInt != Segment[p])
+        {
+          WinLose = "Lose";
+          Console.Clear();
+          GameOver();
+          string ScoreString = Convert.ToString(Score);
+          while(ScoreString.Length < 6)
+          {
+            ScoreString = "0"+ScoreString;
+          }
+          StoringToFile(ScoreString, GameMode, WinLose);
+        }
+      }
+      Score = Score + 7;
+    }
+    WinLose = "Win";
+    Console.Clear();
+    YouWin();
+    string ScoreString2 = Convert.ToString(Score);
+    while(ScoreString2.Length < 6)
+    {
+      ScoreString2 = "0"+ScoreString2;
+    }
+    StoringToFile(ScoreString2, GameMode, WinLose);
+  }
+  
+  //normal mode
+  public static int[] NormalGen(int[] Segment)
+  {
+    //4 colours, randomly generated for each turn, 20 levels.
+    Random Random = new Random(); //importing random into the workspace
+    for (int r = 0; r < 20; r++) //r for random
+    {
+      int SegmentNum = Random.Next(1,5); //generating a number between 1 and 4, each number relating to each segment 
+      Segment[r] = SegmentNum; //adding the segment number to a one dimensional list
+    }
+    return Segment;
+  }
+
+  public static void NormalMode() //see easy mode for more comments
+  {
+    int[] Segment = new int[20]; //creating an array, length of 20, to store the order of the game
+    Segment = NormalGen(Segment); //calling in the generated game
+    int Score = 0;
+    int TimeDelay1 = 1000;
+    int r = 0;
+    int p = 0;
+    string GameMode = "Normal";
+    string WinLose = "Lose";
+    
+    //this loop makes the code repeat a total of 20 times for a 20 round game
+    for (int s = 1; s < 21; s++) //s for sequence
+    {
+      //this goes through purely to display the 'simon' game on screen.
+      for (r = 0; r < s; r++)
+      {
+        Console.Clear();
+        Console.WriteLine("Current Score: "+Score+"\n");
+        NormalBlank();
+        Thread.Sleep(TimeDelay1);
+        Console.Clear();
+        Console.WriteLine("Current Score: "+Score+"\n");
+        if (Segment[r] == 1) 
+        {
+          NormalOne(); //displays the ASCII art of simon says with partition 1 filled
+        }
+        else if (Segment[r] == 2) 
+        {
+          NormalTwo(); //displays the ASCII art of simon says with partition 2 filled
+        }
+        else if (Segment[r] == 3) 
+        {
+          NormalThree(); //displays the ASCII art of simon says with partition 3 filled
+        }
+        else if (Segment[r] == 4) 
+        {
+          NormalFour(); //displays the ASCII art of simon says with partition 4 filled
+        }
+        Thread.Sleep(TimeDelay1);
+        Console.Clear();
+        Console.WriteLine("Current Score: "+Score+"\n");
+      }
+      //this loops then gets the user to enter the sequence
+      for (p = 0; p < s; p++)
+      {
+        Console.Clear();
+        Console.WriteLine("Current Score: "+Score+"\n");
+        NormalBlank();
+        Console.WriteLine("Enter the sequence, pressing enter after every number:");
+        string UserInputStr = Console.ReadLine();
+        int UserInputInt = 0;
+        try
+        {
+          UserInputInt = Int32.Parse(UserInputStr);
+        }
+        catch(Exception e)
+        {
+          WinLose = "Lose";
+          Console.Clear();
+          GameOver();
+          string ScoreString = Convert.ToString(Score);
+          while(ScoreString.Length < 6)
+          {
+            ScoreString = "0"+ScoreString;
+          }
+          StoringToFile(ScoreString, GameMode, WinLose);
+        }
+        if (UserInputInt != Segment[p])
+        {
+          WinLose = "Lose";
+          Console.Clear();
+          GameOver();
+          string ScoreString = Convert.ToString(Score);
+          while(ScoreString.Length < 6)
+          {
+            ScoreString = "0"+ScoreString;
+          }
+          StoringToFile(ScoreString, GameMode, WinLose); //calling the storing function and passing the 3 required variables: ScoreString, Gamemode and WinLose to the function
+        }
+      }
+      Score = Score + 10;
+    }
+    WinLose = "Win";
+    Console.Clear();
+    YouWin();
+    string ScoreString2 = Convert.ToString(Score);
+    while(ScoreString2.Length < 6)
+    {
+      ScoreString2 = "0"+ScoreString2;
+    }
+    StoringToFile(ScoreString2, GameMode, WinLose);
+  }
+
+  public static int[] DifficultGen(int[] Segment)
+  {
+    //5 colours, randomly generated for each turn, 20 levels.
+    Random Random = new Random(); //importing random into the workspace
+    for (int r = 0; r < 20; r++) //r for random
+    {
+      int SegmentNum = Random.Next(1,6); //generating a number between 1 and 5, each number relating to each segment 
+      Segment[r] = SegmentNum; //adding the segment number to a one dimensional list
+    }
+    return Segment;
+  }
+  
+  //difficult mode
+  public static void DifficultMode() //see easy mode for more comments
+  {
+    int[] Segment = new int[20]; //creating an array, length of 20, to store the order of the game
+    Segment = DifficultGen(Segment); //calling in the generated game
+    int Score = 0;
+    int TimeDelay1 = 1000;
+    int r = 0;
+    int p = 0;
+    string GameMode = "Difficult";
+    string WinLose = "Lose";
+    
+    //this loop makes the code repeat a total of 20 times for a 20 round game
+    for (int s = 1; s < 21; s++) //s for sequence
+    {
+      //this goes through purely to display the 'simon' game on screen.
+      for (r = 0; r < s; r++)
+      {
+        Console.Clear();
+        Console.WriteLine("Current Score: "+Score+"\n");
+        DifficultBlank();
+        Thread.Sleep(TimeDelay1);
+        Console.Clear();
+        Console.WriteLine("Current Score: "+Score+"\n");
+        if (Segment[r] == 1) 
+        {
+          DifficultOne(); //displays the ASCII art of simon says with partition 1 filled
+        }
+        else if (Segment[r] == 2) 
+        {
+          DifficultTwo(); //displays the ASCII art of simon says with partition 2 filled
+        }
+        else if (Segment[r] == 3) 
+        {
+          DifficultThree(); //displays the ASCII art of simon says with partition 3 filled
+        }
+        else if (Segment[r] == 4) 
+        {
+          DifficultFour(); //displays the ASCII art of simon says with partition 4 filled
+        }
+        else if (Segment[r] == 5) 
+        {
+          DifficultFive(); //displays the ASCII art of simon says with partition 4 filled
+        }
+        Thread.Sleep(TimeDelay1);
+        Console.Clear();
+        Console.WriteLine("Current Score: "+Score+"\n");
+      }
+      //this loops then gets the user to enter the sequence
+      for (p = 0; p < s; p++)
+      {
+        Console.Clear();
+        Console.WriteLine("Current Score: "+Score+"\n");
+        DifficultBlank();
+        Console.WriteLine("Enter the sequence, pressing enter after every number:");
+        string UserInputStr = Console.ReadLine();
+        int UserInputInt = 0;
+        try
+        {
+          UserInputInt = Int32.Parse(UserInputStr);
+        }
+        catch(Exception e)
+        {
+          WinLose = "Lose";
+          Console.Clear();
+          GameOver();
+          string ScoreString = Convert.ToString(Score);
+          while(ScoreString.Length < 6)
+          {
+            ScoreString = "0"+ScoreString;
+          }
+          StoringToFile(ScoreString, GameMode, WinLose);
+        }
+        if (UserInputInt != Segment[p])
+        {
+          WinLose = "Lose";
+          Console.Clear();
+          GameOver();
+          string ScoreString = Convert.ToString(Score);
+          while(ScoreString.Length < 6)
+          {
+            ScoreString = "0"+ScoreString;
+          }
+          StoringToFile(ScoreString, GameMode, WinLose);
+        }
+      }
+      Score = Score + 15;
+    }
+    WinLose = "Win";
+    Console.Clear();
+    YouWin();
+    string ScoreString2 = Convert.ToString(Score);
+    while(ScoreString2.Length < 6)
+    {
+      ScoreString2 = "0"+ScoreString2;
+    }
+    StoringToFile(ScoreString2, GameMode, WinLose);
+  }
+  
+  //unlimited mode
+  public static void UnlimitedMode()
+  {
+    bool Looper = true;
+    int s = 1;
+    int Score = 0;
+    int TimeDelay1 = 1000;
+    int r = 0;
+    int p = 0;
+    string WinLose = "N/A";
+    string GameMode = "Unlimited";
+    Random Random = new Random();
+    List<int> Segment = new List<int>();
+    
+    while(Looper == true) //endless loop making the game run forever
+    {
+      int RandomNum = Random.Next(1,5); //generating the next number at the begining of each loop rather than at the start of the entire game
+      Segment.Add(RandomNum);
+      //this goes through purely to display the 'simon' game on screen.
+      for (r = 0; r < s; r++)
+      {
+        Console.Clear();
+        Console.WriteLine("Current Score: "+Score+"\n");
+        NormalBlank();
+        Thread.Sleep(TimeDelay1);
+        Console.Clear();
+        Console.WriteLine("Current Score: "+Score+"\n");
+        if (Segment[r] == 1) 
+        {
+          NormalOne(); //displays the ASCII art of simon says with partition 1 filled
+        }
+        else if (Segment[r] == 2) 
+        {
+          NormalTwo(); //displays the ASCII art of simon says with partition 2 filled
+        }
+        else if (Segment[r] == 3) 
+        {
+          NormalThree(); //displays the ASCII art of simon says with partition 3 filled
+        }
+        else if (Segment[r] == 4) 
+        {
+          NormalFour(); //displays the ASCII art of simon says with partition 4 filled
+        }
+        Thread.Sleep(TimeDelay1);
+        Console.Clear();
+        Console.WriteLine("Current Score: "+Score+"\n");
+      }
+      //this loops then gets the user to enter the sequence
+      for (p = 0; p < s; p++)
+      {
+        Console.Clear();
+        Console.WriteLine("Current Score: "+Score+"\n");
+        NormalBlank();
+        Console.WriteLine("Enter the sequence, pressing enter after every number:");
+        string UserInputStr = Console.ReadLine();
+        int UserInputInt = 0;
+        try
+        {
+          UserInputInt = Int32.Parse(UserInputStr);
+        }
+        catch(Exception e)
+        {
+          Console.Clear();
+          GameOver();
+          string ScoreString = Convert.ToString(Score);
+          while(ScoreString.Length < 6)
+          {
+            ScoreString = "0"+ScoreString;
+          }
+          StoringToFile(ScoreString, GameMode, WinLose);
+        }
+        if (UserInputInt != Segment[p])
+        {
+          Console.Clear();
+          GameOver();
+          string ScoreString = Convert.ToString(Score);
+          while(ScoreString.Length < 6)
+          {
+            ScoreString = "0"+ScoreString;
+          }
+          StoringToFile(ScoreString, GameMode, WinLose);
+        }
+      }
+      if(Score <= 45) //score increase increases the further you get into the round
+      {
+        Score = Score + 10;
+      }
+      else if(Score >= 46 && Score <= 90)
+      {
+        Score = Score + 20;
+      }
+      else if(Score >= 91 && Score <= 150)
+      {
+        Score = Score + 30;
+      }
+      else
+      {
+        Score = Score + 45;
+      }
+      
+      if(TimeDelay1 > 500) //game gets faster the further you get in the game
+      {
+        TimeDelay1 = TimeDelay1 - 100;
+      }
+      
+      s = s + 1;
+    }
+  }
+  
+  public static void StoringToFile(string Score, string GameMode, string WinLose) //we want : Score,Name,Date,Win,Gamemode
+  {
+    Console.Clear();
+    Console.WriteLine("SAVING SCORE...\n");
+    int TimeDelay1 = 1000;
+    string Main = "main.csv";
+    
+    //here...
+    //name
+    Console.WriteLine("Please enter your name:");
+    string Name = Console.ReadLine();
+    for(int q = 0; q < Name.Length; q++)
+    {
+      if(Name.Substring(q,1) == ",")
+      {
+        Console.WriteLine("[You cannot include commas (,) in your name]");
+        Thread.Sleep(TimeDelay1);
+        StoringToFile(Score, GameMode, WinLose);
+      }
+    }
+    
+    //date
+    DateTime CurrentDate = DateTime.Now;
+    int Year = CurrentDate.Year;
+    int Month = CurrentDate.Month;
+    int Day = CurrentDate.Day;
+    string FullDate = Day+"/"+Month+"/"+Year;
+    Console.WriteLine("\nThe date is:\n"+FullDate);
+    Thread.Sleep(TimeDelay1);
+    
+    //game mode
+    Console.WriteLine("\nYou were playing:\n"+GameMode+" mode");
+    Thread.Sleep(TimeDelay1);
+    
+    //whether you won or lost
+    Console.WriteLine("\nWin Status:");
+    Console.WriteLine(WinLose);
+    Thread.Sleep(TimeDelay1);
+    //...down to here, gets all the values and gives them a proper value
+    
+    string FullSave = Score+","+Name+","+FullDate+","+WinLose+","+GameMode+",\n";
+    File.AppendAllText(Main, FullSave);
+    
+    Console.WriteLine("\n[Press any key to save score]");
+    Console.ReadKey();
+    MainMenu();
+  }
+  
+  public static void DisplayLeaderBoard()
+  {
+    List<string> listA = new List<string>();
+    
+    using(var reader = new StreamReader("main.csv"))
+    {
+      while (!reader.EndOfStream)
+      {
+        var line = reader.ReadLine();
+        var values = line.Split(",");
+        
+        listA.Add(values[0]+","+values[1]+","+values[2]+","+values[3]+","+values[4]+",");
+      }
+    }
+    
+    var Lines = listA.ToArray();
+    int ArrayLength = 10;
+    
+    if (Lines.Length >= 1)
+    {
+      if (Lines.Length > 10)
+      {
+        ArrayLength = 10;
+      }
+      else
+      {
+        ArrayLength = Lines.Length;
+      }
+    
+      Array.Sort(Lines);
+      Array.Reverse(Lines);
+      
+      Console.Clear();
+      Console.WriteLine(" SCORE |    NAME    |    DATE    | WIN/LOSE | GAMEMODE");
+      Console.WriteLine("-------+------------+------------+----------+----------");
+      for(int s = 0; s < ArrayLength; s++)
+      {
+        var Values = Lines[s].Split(",");
+        
+        //making score look good
+        while(Values[0].Substring(0,1) == "0" && Values[0].Length > 1)
+        {
+          Values[0] = Values[0].Substring(1,Values[0].Length - 1);
+        }
+        Values[0] = Values[0]+" ";
+        while(Values[0].Length < 7)
+        {
+          Values[0] = " "+Values[0];
+        }
+        //making name look good
+        Values[1] = " "+Values[1];
+        if(Values[1].Length > 11)
+        {
+          Values[1] = Values[1].Substring(0,8);
+          Values[1] = Values[1]+"...";
+        }
+        while(Values[1].Length < 12)
+        {
+          Values[1] = Values[1]+" ";
+        }
+        //making date look good
+        Values[2] = " "+Values[2];
+        while(Values[2].Length < 12)
+        {
+          Values[2] = Values[2]+" ";
+        }
+        //making win status look good
+        Values[3] = " "+Values[3];
+        while(Values[3].Length < 10)
+        {
+          Values[3] = Values[3]+" "; 
+        }
+        //game mode
+        Values[4] = " "+Values[4];
+        //final print
+        Console.WriteLine(Values[0]+"|"+Values[1]+"|"+Values[2]+"|"+Values[3]+"|"+Values[4]);
+      }
+    }
+    else 
+    {
+      Console.Clear();
+      Console.WriteLine("There are no scores currently saved! Play now to be the first!");
+    }
+    Console.WriteLine("\n[Press any key to go back to menu]");
+    Console.ReadKey();
+  }
+  
+  //###########################################//
+  //################ ASCII Art ################//
+  //###########################################//
+  
+  //this doesn't need to be commented out, just don't call the functions yet
+  
+  //easy mode
+  public static void EasyBlank()
+  {
+    Console.WriteLine("         , - ~ ~ ~ - ,          ");
+    Console.WriteLine("   1 , '       |       ' , 2    ");
+    Console.WriteLine("   ,           |           ,    ");
+    Console.WriteLine("  ,            |            ,   ");
+    Console.WriteLine(" ,             |             ,  ");
+    Console.WriteLine(" ,             |             ,  ");
+    Console.WriteLine(" ,            / \\            ,  ");
+    Console.WriteLine("  ,         /     \\          ,  ");
+    Console.WriteLine("   ,      /         \\      ,    ");
+    Console.WriteLine("     ,  /             \\ , '     ");
+    Console.WriteLine("       ' - , _ _ _ , - '        ");
+    Console.WriteLine("               3                ");
+  }
+  
+  public static void EasyOne()
+  {
+    Console.WriteLine("         , - ~ ~ ~ - ,          ");
+    Console.WriteLine("   1 , '🟥🟥🟥🟥🟥🟥🟥|       ' , 2    ");
+    Console.WriteLine("   ,🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥|           ,    ");
+    Console.WriteLine("  ,🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥|            ,   ");
+    Console.WriteLine(" ,🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥|             ,  ");
+    Console.WriteLine(" ,🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥|             ,  ");
+    Console.WriteLine(" ,🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥/ \\            ,  ");
+    Console.WriteLine("  ,🟥🟥🟥🟥🟥🟥🟥🟥🟥/     \\          ,  ");
+    Console.WriteLine("   ,🟥🟥🟥🟥🟥🟥/         \\      ,    ");
+    Console.WriteLine("     ,🟥🟥/             \\ , '     ");
+    Console.WriteLine("       ' - , _ _ _ , - '        ");
+    Console.WriteLine("               3                ");
+  }
+  
+  public static void EasyTwo()
+  {
+    Console.WriteLine("         , - ~ ~ ~ - ,          ");
+    Console.WriteLine("   1 , '       |🟦🟦🟦🟦🟦🟦🟦' , 2    ");
+    Console.WriteLine("   ,           |🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦,    ");
+    Console.WriteLine("  ,            |🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦,   ");
+    Console.WriteLine(" ,             |🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦,  ");
+    Console.WriteLine(" ,             |🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦,  ");
+    Console.WriteLine(" ,            / \\🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦,  ");
+    Console.WriteLine("  ,         /     \\🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦,  ");
+    Console.WriteLine("   ,      /         \\🟦🟦🟦🟦🟦🟦,    ");
+    Console.WriteLine("     ,  /             \\🟦, '     ");
+    Console.WriteLine("       ' - , _ _ _ , - '        ");
+    Console.WriteLine("               3                ");
+  }
+  
+  public static void EasyThree()
+  {
+    Console.WriteLine("         , - ~ ~ ~ - ,          ");
+    Console.WriteLine("   1 , '       |       ' , 2    ");
+    Console.WriteLine("   ,           |           ,    ");
+    Console.WriteLine("  ,            |            ,   ");
+    Console.WriteLine(" ,             |             ,  ");
+    Console.WriteLine(" ,             |             ,  ");
+    Console.WriteLine(" ,            /🟨\\            ,  ");
+    Console.WriteLine("  ,         /🟨🟨🟨🟨🟨\\          ,  ");
+    Console.WriteLine("   ,      /🟨🟨🟨🟨🟨🟨🟨🟨🟨\\      ,    ");
+    Console.WriteLine("     ,  /🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨\\ , '     ");
+    Console.WriteLine("       ' - , _ _ _ , - '        ");
+    Console.WriteLine("               3                ");
+  }
+  
+  //normal mode
+  public static void NormalBlank()
+  {
+    Console.WriteLine("         , - ~ ~ ~ - ,          ");
+    Console.WriteLine("   1 , '       |       ' , 2    ");
+    Console.WriteLine("   ,           |           ,    ");
+    Console.WriteLine("  ,            |            ,   ");
+    Console.WriteLine(" ,             |             ,  ");
+    Console.WriteLine(" ,-------------+-------------,  ");
+    Console.WriteLine(" ,             |             ,  ");
+    Console.WriteLine("  ,            |             ,  ");
+    Console.WriteLine("   ,           |           ,    ");
+    Console.WriteLine("   4 ,         |        , ' 3   ");
+    Console.WriteLine("       ' - , _ | _ , - '        ");
+    Console.WriteLine("                                ");
+  }
+  
+  public static void NormalOne()
+  {
+    Console.WriteLine("         , - ~ ~ ~ - ,          ");
+    Console.WriteLine("   1 , '🟥🟥🟥🟥🟥🟥🟥|       ' , 2    ");
+    Console.WriteLine("   ,🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥|           ,    ");
+    Console.WriteLine("  ,🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥|            ,   ");
+    Console.WriteLine(" ,🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥🟥|             ,  ");
+    Console.WriteLine(" ,-------------+-------------,  ");
+    Console.WriteLine(" ,             |             ,  ");
+    Console.WriteLine("  ,            |             ,  ");
+    Console.WriteLine("   ,           |           ,    ");
+    Console.WriteLine("   4 ,         |        , ' 3   ");
+    Console.WriteLine("       ' - , _ | _ , - '        ");
+    Console.WriteLine("                                ");
+  }
+  
+  public static void NormalTwo()
+  {
+    Console.WriteLine("         , - ~ ~ ~ - ,          ");
+    Console.WriteLine("   1 , '       |🟦🟦🟦🟦🟦🟦🟦' , 2    ");
+    Console.WriteLine("   ,           |🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦,    ");
+    Console.WriteLine("  ,            |🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦,   ");
+    Console.WriteLine(" ,             |🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦🟦,  ");
+    Console.WriteLine(" ,-------------+-------------,  ");
+    Console.WriteLine(" ,             |             ,  ");
+    Console.WriteLine("  ,            |             ,  ");
+    Console.WriteLine("   ,           |           ,    ");
+    Console.WriteLine("   4 ,         |        , ' 3   ");
+    Console.WriteLine("       ' - , _ | _ , - '        ");
+    Console.WriteLine("                                ");
+  }
+  
+  public static void NormalThree()
+  {
+    Console.WriteLine("         , - ~ ~ ~ - ,          ");
+    Console.WriteLine("   1 , '       |       ' , 2    ");
+    Console.WriteLine("   ,           |           ,    ");
+    Console.WriteLine("  ,            |            ,   ");
+    Console.WriteLine(" ,             |             ,  ");
+    Console.WriteLine(" ,-------------+-------------,  ");
+    Console.WriteLine(" ,             |🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨,  ");
+    Console.WriteLine("  ,            |🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨,  ");
+    Console.WriteLine("   ,           |🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨,    ");
+    Console.WriteLine("   4 ,         |🟨🟨🟨🟨🟨🟨🟨🟨, ' 3   ");
+    Console.WriteLine("       ' - , _ | _ , - '        ");
+    Console.WriteLine("                                ");
+  }
+  
+  public static void NormalFour()
+  {
+    Console.WriteLine("         , - ~ ~ ~ - ,          ");
+    Console.WriteLine("   1 , '       |       ' , 2    ");
+    Console.WriteLine("   ,           |           ,    ");
+    Console.WriteLine("  ,            |            ,   ");
+    Console.WriteLine(" ,             |             ,  ");
+    Console.WriteLine(" ,-------------+-------------,  ");
+    Console.WriteLine(" ,🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩|             ,  ");
+    Console.WriteLine("  ,🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩|             ,  ");
+    Console.WriteLine("   ,🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩|           ,    ");
+    Console.WriteLine("   4 ,🟩🟩🟩🟩🟩🟩🟩🟩🟩|        , ' 3   ");
+    Console.WriteLine("       ' - , _ | _ , - '        ");
+    Console.WriteLine("                                ");
+  }
+  
+  //difficult mode
+  public static void DifficultBlank()
+  {
+    Console.WriteLine("         , - ~ ~ ~ - ,          ");
+    Console.WriteLine("   1 , '       |       ' , 2    ");
+    Console.WriteLine("   ,--_        |        _--,    ");
+    Console.WriteLine("  ,    `--=__  |  __=--`    ,   ");
+    Console.WriteLine(" ,           \\_|_/          ,  ");
+    Console.WriteLine(" ,             +             ,  ");
+    Console.WriteLine(" ,           /   \\           ,  ");
+    Console.WriteLine("  ,        /       \\         ,  ");
+    Console.WriteLine(" 5 ,     /           \\     , 3  ");
+    Console.WriteLine("     , /               \\ ,'     ");
+    Console.WriteLine("       ' - , _ _ _ , - '        ");
+    Console.WriteLine("               4                ");
+  }
+  
+  public static void DifficultOne()
+  {
+    Console.WriteLine("         , - ~ ~ ~ - ,          ");
+    Console.WriteLine("   1 , '🟥🟥🟥🟥🟥🟥🟥|       ' , 2    ");
+    Console.WriteLine("   ,--_🟥🟥🟥🟥🟥🟥🟥🟥|        _--,    ");
+    Console.WriteLine("  ,    `--=_🟥🟥🟥|  __=--`    ,   ");
+    Console.WriteLine(" ,           \\_|_/           ,  ");
+    Console.WriteLine(" ,             +             ,  ");
+    Console.WriteLine(" ,           /   \\           ,  ");
+    Console.WriteLine("  ,        /       \\         ,  ");
+    Console.WriteLine(" 5 ,     /           \\     , 3  ");
+    Console.WriteLine("     , /               \\ ,'     ");
+    Console.WriteLine("       ' - , _ _ _ , - '        ");
+    Console.WriteLine("               4                ");
+  }
+  
+  public static void DifficultTwo()
+  {
+    Console.WriteLine("         , - ~ ~ ~ - ,          ");
+    Console.WriteLine("   1 , '       |🟦🟦🟦🟦🟦🟦🟦' , 2    ");
+    Console.WriteLine("   ,--_        |🟦🟦🟦🟦🟦🟦🟦🟦_--,    ");
+    Console.WriteLine("  ,    `--=__  |🟦🟦🟦_=--`    ,   ");
+    Console.WriteLine(" ,           \\_|_/           ,  ");
+    Console.WriteLine(" ,             +             ,  ");
+    Console.WriteLine(" ,           /   \\           ,  ");
+    Console.WriteLine("  ,        /       \\         ,  ");
+    Console.WriteLine(" 5 ,     /           \\     , 3  ");
+    Console.WriteLine("     , /               \\ ,'     ");
+    Console.WriteLine("       ' - , _ _ _ , - '        ");
+    Console.WriteLine("               4                ");
+  }
+  
+  public static void DifficultThree()
+  {
+    Console.WriteLine("         , - ~ ~ ~ - ,          ");
+    Console.WriteLine("   1 , '       |       ' , 2    ");
+    Console.WriteLine("   ,--_        |        _--,    ");
+    Console.WriteLine("  ,    `--=__  |  __=--`🟨🟨🟨🟨,   ");
+    Console.WriteLine(" ,           \\_|_/🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨,  ");
+    Console.WriteLine(" ,             +🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨,  ");
+    Console.WriteLine(" ,           /   \\🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨🟨,  ");
+    Console.WriteLine("  ,        /       \\🟨🟨🟨🟨🟨🟨🟨🟨🟨,  ");
+    Console.WriteLine(" 5 ,     /           \\🟨🟨🟨🟨🟨, 3  ");
+    Console.WriteLine("     , /               \\🟨,'     ");
+    Console.WriteLine("       ' - , _ _ _ , - '        ");
+    Console.WriteLine("               4                ");
+  }
+  
+  public static void DifficultFour()
+  {
+    Console.WriteLine("         , - ~ ~ ~ - ,          ");
+    Console.WriteLine("   1 , '       |       ' , 2    ");
+    Console.WriteLine("   ,--_        |        _--,    ");
+    Console.WriteLine("  ,    `--=__  |  __=--`    ,   ");
+    Console.WriteLine(" ,           \\_|_/           ,  ");
+    Console.WriteLine(" ,             +             ,  ");
+    Console.WriteLine(" ,           /🟩🟩🟩\\           ,  ");
+    Console.WriteLine("  ,        /🟩🟩🟩🟩🟩🟩🟩\\         ,  ");
+    Console.WriteLine(" 5 ,     /🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩\\     , 3  ");
+    Console.WriteLine("     , /🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩\\ ,'     ");
+    Console.WriteLine("       ' - , _ _ _ , - '        ");
+    Console.WriteLine("               4                ");
+  }
+  
+  public static void DifficultFive()
+  {
+    Console.WriteLine("         , - ~ ~ ~ - ,          ");
+    Console.WriteLine("   1 , '       |       ' , 2    ");
+    Console.WriteLine("   ,--_        |        _--,    ");
+    Console.WriteLine("  ,🟪🟪🟪🟪`--=__  |  __=--`    ,   ");
+    Console.WriteLine(" ,🟪🟪🟪🟪🟪🟪🟪🟪🟪🟪🟪\\_|_/           ,  ");
+    Console.WriteLine(" ,🟪🟪🟪🟪🟪🟪🟪🟪🟪🟪🟪🟪🟪+             ,  ");
+    Console.WriteLine(" ,🟪🟪🟪🟪🟪🟪🟪🟪🟪🟪🟪/   \\           ,  ");
+    Console.WriteLine("  ,🟪🟪🟪🟪🟪🟪🟪🟪/       \\         ,  ");
+    Console.WriteLine(" 5 ,🟪🟪🟪🟪🟪/           \\     , 3  ");
+    Console.WriteLine("     ,🟪/               \\ ,'     ");
+    Console.WriteLine("       ' - , _ _ _ , - '        ");
+    Console.WriteLine("               4                ");
+  }
+  
+  public static void GameOver()
+  {
+    Console.WriteLine(" _______  _______  _______  _______ ");
+    Console.WriteLine("(  ____ \\(  ___  )(       )(  ____ \\");
+    Console.WriteLine("| (    \\/| (   ) || () () || (    \\/");
+    Console.WriteLine("| |      | (___) || || || || (__    ");
+    Console.WriteLine("| | ____ |  ___  || |(_)| ||  __)   ");
+    Console.WriteLine("| | \\_  )| (   ) || |   | || (      ");
+    Console.WriteLine("| (___) || )   ( || )   ( || (____/\\");
+    Console.WriteLine("(_______)|/     \\||/     \\|(_______/");
+    Console.WriteLine("                                    ");
+    Console.WriteLine(" _______           _______  _______ ");
+    Console.WriteLine("(  ___  )|\\     /|(  ____ \\(  ____ )");
+    Console.WriteLine("| (   ) || )   ( || (    \\/| (    )|");
+    Console.WriteLine("| |   | || |   | || (__    | (____)|");
+    Console.WriteLine("| |   | |( (   ) )|  __)   |     __)");
+    Console.WriteLine("| |   | | \\ \\_/ / | (      | (\\ (   ");
+    Console.WriteLine("| (___) |  \\   /  | (____/\\| ) \\ \\__");
+    Console.WriteLine("(_______)   \\_/   (_______/|/   \\__/");
+    Console.WriteLine("                                    ");
+    Console.WriteLine("[Press any key to go to save your score]");
+    Console.ReadKey();
+  }
+  
+  public static void YouWin()
+  {
+    Console.WriteLine("          _______             ");
+    Console.WriteLine("|\\     /|(  ___  )|\\     /|   ");
+    Console.WriteLine("( \\   / )| (   ) || )   ( |   ");
+    Console.WriteLine(" \\ (_) / | |   | || |   | |   ");
+    Console.WriteLine("  \\   /  | |   | || |   | |   ");
+    Console.WriteLine("   ) (   | |   | || |   | |   ");
+    Console.WriteLine("   | |   | (___) || (___) |   ");
+    Console.WriteLine("   \\_/   (_______)(_______)   ");
+    Console.WriteLine("                              ");
+    Console.WriteLine("         _________ _        _ ");
+    Console.WriteLine("|\\     /|\\__   __/( (    /|( )");
+    Console.WriteLine("| )   ( |   ) (   |  \\  ( || |");
+    Console.WriteLine("| | _ | |   | |   |   \\ | || |");
+    Console.WriteLine("| |( )| |   | |   | (\\ \\) || |");
+    Console.WriteLine("| || || |   | |   | | \\   |(_)");
+    Console.WriteLine("| () () |___) (___| )  \\  | _ ");
+    Console.WriteLine("(_______)\\_______/|/    )_)(_)");
+    Console.WriteLine("                              ");
+    Console.WriteLine("[Press any key to go to save your score]");
+    Console.ReadKey();
+  }
+}
