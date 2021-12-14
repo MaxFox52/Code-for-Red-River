@@ -1,0 +1,1065 @@
+using System;
+using System.Threading;
+using System.Collections.Generic;
+
+/*
+~~~ Random number game (Fishing Sim) ~~~
+
+- Get user to cast their rod, get them to wait for a random amount of time
+- When a user finally brings in their rod, a random ASCII fish will be shown
+- Let the user repeat the process as many times as they'd like, getting a score for different fish
+- The user will have a set amount of bait which will go down by one each cast of the rod they do
+- The user can buy more bait by using their score
+- Type "T" or "D" in the main menu to enter developer mode
+*/
+
+class MainClass
+{
+  public static void Main()
+  {
+    Console.Clear();
+    int Score = 0;
+    int Bait = 20;
+    int[,] GameProgress = new int[8,2]
+    {//Array for the fishes - total caught and biggest caught
+      {0,0}, //Trout - total caught - biggest catch
+      {0,0}, //Bass - total caught - biggest catch
+      {0,0}, //Carp - total caught - biggest catch
+      {0,0}, //Jellyfish - total caught - biggest catch
+      {0,0}, //Bullhead - total caught - biggest catch
+      {0,0}, //Swordfish - total caught - biggest catch
+      {0,0}, //Guppy - total caught - biggest catch
+      {0,0}  //Dragon - total caught - biggest catch
+    };
+    Console.WriteLine("Hello Fisher!");
+    Thread.Sleep(1000);
+    Console.WriteLine("My name is Randy"); //please tell me you get this joke
+    Console.WriteLine("I'm going to be your host today for this fishing trip");
+    Thread.Sleep(2000);
+    //this tells the user how to play
+    Console.WriteLine("\nHow this is going to work:");
+    Console.WriteLine("• You will cast the rod into the water");
+    Console.WriteLine("• You will have to wait a random amount of time before a fish is caught");
+    Console.WriteLine("• When a fish is caught, you will have to reel it in");
+    Console.WriteLine("• Depending on the fish you have caught, you will gain a score");
+    Console.WriteLine("• You'll only have a set amount of bait, you can buy more in the store");
+    Thread.Sleep(3000);
+    Console.WriteLine("\nYou get all that?");
+    Console.WriteLine("Cool, press any key to move to the next stage");
+    Console.ReadKey();
+    Menu(Score, Bait, GameProgress); //this then calls the main function for the gamne to properly begin
+  }
+
+  public static void Menu(int Score, int Bait, int[,] GameProgress)
+  {
+    Console.Clear();
+    if (Score < 500 && Bait == 0) //if the bait is 0 and the score is too low to buy more bait, this then calls a game over to ensure the user doesn't get stuck in an endless loop
+    {
+      GameOver(Score, Bait, GameProgress);
+    }
+    Console.WriteLine("Score: "+Score);
+    Console.WriteLine("Bait: "+Bait+"\n");
+    Console.WriteLine("Enter where you would like to go:");
+    Console.WriteLine("(1) Fishing"); //play the game
+    Console.WriteLine("(2) Shopping"); //buy more bait
+    Console.WriteLine("(3) Progress"); //see a fishing log of your progress
+    Console.WriteLine("(4) Credits"); //credits lol
+    Console.WriteLine("(5) Quit"); //quit the game
+    string UserChoice = Console.ReadLine();
+    if (UserChoice == "")
+    {
+      Menu(Score, Bait, GameProgress); //this is a failsafe to make sure the program doesn't try to get the first value of a blank string, as that will throw up an error
+    }
+    UserChoice = UserChoice.ToUpper();
+    UserChoice = UserChoice.Substring(0,1);
+    if (UserChoice == "1" || UserChoice == "F")
+    {
+      CastingRod(Score, Bait, GameProgress);
+    }
+    else if (UserChoice == "2" || UserChoice == "S")
+    {
+      Shop(Score, Bait, GameProgress);
+    }
+    else if (UserChoice == "3" || UserChoice == "P")
+    {
+      GameProgressFunction(Score, Bait, GameProgress);
+    }
+    else if (UserChoice == "4" || UserChoice == "C")
+    {
+      Credits(Score, Bait, GameProgress);
+    }
+    else if (UserChoice == "5" || UserChoice == "Q")
+    {
+      Quit();
+    }
+    else if (UserChoice == "T" || UserChoice == "D")
+    {
+      Test(Score, Bait, GameProgress); //secret dewveloper menu, this was made so i didn't have to keep going into the code to change values, i could just change them here
+    }
+    else 
+    {
+      Menu(Score, Bait, GameProgress); //if an invalid input is entered
+    }
+  }
+
+  public static void CastingRod(int Score, int Bait, int[,] GameProgress)
+  {
+    Console.Clear();
+    Console.WriteLine("Score: "+Score);
+    Console.WriteLine("Bait: "+Bait+"\n"); //most sections display the score and bait at the top
+    Console.WriteLine("[Press enter to cast your line - type 'B' to go back]");
+    string GoFish = Console.ReadLine();
+    if (GoFish == "")
+    {
+      if (Bait > 0) //check if they have bait to actually go fishing
+      {
+        Random r = new Random();
+        int FishType = r.Next(1,101); //random number from 1 to 100
+        int WaitTime = r.Next(500,5000); //random number from 500 to 5000
+        Console.Clear();
+        Console.WriteLine("Score: "+Score);
+        Console.WriteLine("Bait: "+Bait+"\n");
+        FishingRod(); //displays the ascii art for the fishing rod, adds a bit for the UX
+        Thread.Sleep(WaitTime);
+        Console.WriteLine("Quick! Catch the fish!");
+        Console.WriteLine("Press any key!");
+        Console.ReadKey(); //this conditional here works out which fish has been caught, and then runs the appriate function for that 
+        if (FishType >= 1 && FishType <= 30)
+        {
+          CaughtTrout(Score, Bait, GameProgress);
+        }
+        else if (FishType >= 31 && FishType <= 50)
+        {
+          CaughtBass(Score, Bait, GameProgress);
+        }
+        else if (FishType >= 51 && FishType <= 60)
+        {
+          CaughtCarp(Score, Bait, GameProgress);
+        }
+        else if (FishType >= 61 && FishType <= 70)
+        {
+          CaughtJellyfish(Score, Bait, GameProgress);
+        }
+        else if (FishType >= 71 && FishType <= 79)
+        {
+          CaughtBullhead(Score, Bait, GameProgress);
+        }
+        else if (FishType >= 80 && FishType <= 92)
+        {
+          CaughtSwordfish(Score,Bait, GameProgress);
+        }
+        else if (FishType >= 93 && FishType <= 99)
+        {
+          CaughtGoldenGuppy(Score,Bait, GameProgress);
+        }
+        else if (FishType == 100)
+        {
+          CaughtDragon(Score,Bait, GameProgress);
+        }
+      }
+      else
+      {
+        Console.Clear(); //this is if they have 0 bait left
+        EmptyBaitBucket();
+        Console.WriteLine("You don't have any bait left!");
+        Console.WriteLine("You can buy more at the shop");
+        Thread.Sleep(3000);
+        Menu(Score, Bait, GameProgress);
+      }
+    }
+    GoFish = GoFish.Substring(0,1); //this is the code to go back...
+    GoFish = GoFish.ToUpper(); //... it has to happen here, as to fish it requires a blank input, and this finds the first value, which would cause an error up there
+    if (GoFish == "B")
+    {
+      Menu(Score, Bait, GameProgress);
+    }
+    else
+    {
+      CastingRod(Score, Bait, GameProgress);
+    }
+  }
+  
+  public static void CaughtTrout(int Score, int Bait, int[,] GameProgress)
+  {
+    Console.Clear();
+    Random r = new Random();
+    int TroutSize = r.Next(15,31); //random size fish for some variety
+    if (TroutSize > GameProgress[0,1])
+    {
+      GameProgress[0,1] = TroutSize; //saving the size if the value is bigger than the current biggest of that fish
+    }
+    Console.WriteLine("You caught a...");
+    Thread.Sleep(1000);
+    BlueTrout();
+    GameProgress[0,0] = GameProgress[0,0] + 1;
+    Console.WriteLine("Size: "+TroutSize+"cm");
+    Console.WriteLine("+20 points\n");
+    Console.WriteLine("[Press any key to continue]");
+    Console.ReadKey();
+    Bait = Bait - 1;
+    Score = Score + 20;
+    CastingRod(Score, Bait,GameProgress);
+  }
+
+  public static void CaughtBass(int Score, int Bait, int[,] GameProgress)
+  {
+    Console.Clear();
+    Random r = new Random();
+    int BassSize = r.Next(25,41); //same a Trout
+    if (BassSize > GameProgress[1,1])
+    {
+      GameProgress[1,1] = BassSize;
+    }
+    Console.WriteLine("You caught a...");
+    Thread.Sleep(1000);
+    WhiteBass();
+    GameProgress[1,0] = GameProgress[1,0] + 1;
+    Console.WriteLine("Size: "+BassSize+"cm");
+    Console.WriteLine("+30 points\n");
+    Console.WriteLine("[Press any key to continue]");
+    Console.ReadKey();
+    Bait = Bait - 1;
+    Score = Score + 30;
+    CastingRod(Score,Bait,GameProgress);
+  }
+
+  public static void CaughtCarp(int Score, int Bait, int[,] GameProgress)
+  {
+    Console.Clear();
+    Random r = new Random();
+    int CarpSize = r.Next(40,81); //same a Trout
+    if (CarpSize > GameProgress[2,1])
+    {
+      GameProgress[2,1] = CarpSize;
+    }
+    Console.WriteLine("You caught an...");
+    Thread.Sleep(1000);
+    OrangeCarp();
+    GameProgress[2,0] = GameProgress[2,0] + 1;
+    Console.WriteLine("Size: "+CarpSize+"cm");
+    Console.WriteLine("+40 points\n");
+    Console.WriteLine("[Press any key to continue]");
+    Console.ReadKey();
+    Bait = Bait - 1;
+    Score = Score + 40;
+    CastingRod(Score,Bait,GameProgress);
+  }
+
+  public static void CaughtJellyfish(int Score, int Bait, int[,] GameProgress)
+  {
+    Console.Clear();
+    Random r = new Random();
+    int JellyfishSize = r.Next(1,61); //same a Trout
+    if (JellyfishSize > GameProgress[3,1])
+    {
+      GameProgress[3,1] = JellyfishSize;
+    }
+    Console.WriteLine("You caught a...");
+    Thread.Sleep(1000);
+    PinkJellyfish();
+    GameProgress[3,0] = GameProgress[3,0] + 1;
+    Console.WriteLine("Size: "+JellyfishSize+"cm");
+    Console.WriteLine("+40 points\n");
+    Console.WriteLine("[Press any key to continue]");
+    Console.ReadKey();
+    Bait = Bait - 1;
+    Score = Score + 40;
+    CastingRod(Score,Bait,GameProgress);
+  }
+
+  public static void CaughtBullhead(int Score, int Bait, int[,] GameProgress)
+  {
+    Console.Clear();
+    Random r = new Random();
+    int BullheadSize = r.Next(40,81); //same a Trout
+    if (BullheadSize > GameProgress[4,1])
+    {
+      GameProgress[4,1] = BullheadSize;
+    }
+    Console.WriteLine("You caught a...");
+    Thread.Sleep(1000);
+    BlackBullhead();
+    GameProgress[4,0] = GameProgress[4,0] + 1;
+    Console.WriteLine("Size: "+BullheadSize+"cm");
+    Console.WriteLine("+50 points\n");
+    Console.WriteLine("[Press any key to continue]");
+    Console.ReadKey();
+    Bait = Bait - 1;
+    Score = Score + 50;
+    CastingRod(Score,Bait,GameProgress);
+  }
+  
+  public static void CaughtSwordfish(int Score, int Bait, int[,] GameProgress)
+  {
+    Console.Clear();
+    Random r = new Random();
+    int SwordfishSize = r.Next(80,191); //same a Trout
+    if (SwordfishSize > GameProgress[5,1])
+    {
+      GameProgress[5,1] = SwordfishSize;
+    }
+    Console.WriteLine("You caught a...");
+    Thread.Sleep(1000);
+    NavySwordfish();
+    GameProgress[5,0] = GameProgress[5,0] + 1;
+    Console.WriteLine("Size:"+SwordfishSize+"cm");
+    Console.WriteLine("+50 points\n");
+    Console.WriteLine("[Press any key to continue]");
+    Console.ReadKey();
+    Bait = Bait - 1;
+    Score = Score + 50;
+    CastingRod(Score,Bait,GameProgress);
+  }
+  
+  public static void CaughtGoldenGuppy(int Score, int Bait, int[,] GameProgress)
+  {
+    Console.Clear();
+    Random r = new Random();
+    int GuppySize = r.Next(30,61); //same a Trout
+    if (GuppySize > GameProgress[6,1])
+    {
+      GameProgress[6,1] = GuppySize;
+    }
+    Console.WriteLine("You caught a...");
+    Thread.Sleep(1000);
+    GoldenGuppy();
+    GameProgress[6,0] = GameProgress[6,0] + 1;
+    Console.WriteLine("Size: "+GuppySize+"mm");
+    Console.WriteLine("+75 points\n");
+    Console.WriteLine("[Press any key to continue]");
+    Console.ReadKey();
+    Bait = Bait - 1;
+    Score = Score + 75;
+    CastingRod(Score,Bait,GameProgress);
+  }
+  
+  public static void CaughtDragon(int Score, int Bait, int[,] GameProgress)
+  {
+    Console.Clear();
+    Random r = new Random(); //this one is slightly different as due to its rarity, i've changed up what happens when you catch it
+    int DragonSize = r.Next(5,26); //it is the same concept overal though
+    if (DragonSize > GameProgress[7,1])
+    {
+      GameProgress[7,1] = DragonSize;
+    }
+    PulledFishingRod();
+    Console.WriteLine("You feel a tugging on your line...");
+    Thread.Sleep(2000);
+    Console.WriteLine("Something big is pulling...");
+    Thread.Sleep(2000);
+    Console.WriteLine("Suddenly!");
+    Thread.Sleep(2000);
+    Console.Clear();
+    Console.WriteLine("Out of the water leaps a...");
+    Dragon();
+    GameProgress[7,0] = GameProgress[7,0] + 1;
+    Console.WriteLine("Size: "+DragonSize+"m");
+    Console.WriteLine("+500 points\n");
+    Console.WriteLine("[Press any key to continue]");
+    Console.ReadKey();
+    Bait = Bait - 1;
+    Score = Score + 500;
+    CastingRod(Score,Bait,GameProgress);
+  }
+  
+  
+  public static void Shop(int Score, int Bait, int[,] GameProgress)
+  {
+    Console.Clear();
+    Console.WriteLine("Score: "+Score);
+    Console.WriteLine("Bait: "+Bait+"\n"); //this is the store to buy bait
+    Console.WriteLine("Welcome to Big Billy's Bait Shop!");
+    Console.WriteLine("How much bait would you like to buy?");
+    Console.WriteLine("\n(15) Bait - 500 Score");
+    Console.WriteLine("(30) Bait - 750 Score");
+    Console.WriteLine("(60) Bait - 1250 Score");
+    Console.WriteLine("\nPlease enter the amount you would like to buy below");
+    Console.WriteLine("[Type 'B' to go back]");
+    string AmountOfBaitBought = Console.ReadLine();
+    AmountOfBaitBought = AmountOfBaitBought.ToUpper();
+    if (AmountOfBaitBought == "B" || AmountOfBaitBought == "b")
+    {
+      Menu(Score,Bait, GameProgress); //check first if the user want to go back
+    }
+    else if (AmountOfBaitBought == "15") //then checks for each possible amount sold
+    {
+      if (Score >= 500) //and checks if the user has enough score to buy that amount of bait
+      {
+        Score = Score - 500;
+        Bait = Bait + 15;
+        Menu(Score,Bait,GameProgress);
+        Console.WriteLine("\n[Bait Purchased]");
+        Thread.Sleep(3000);
+        Shop(Score,Bait,GameProgress);
+      }
+      else 
+      {
+        Console.WriteLine("\n[Insufficient Funds]"); //if not, you cannot buy it
+        Thread.Sleep(3000);
+        Shop(Score,Bait,GameProgress);
+      }
+    }
+    else if (AmountOfBaitBought == "30")
+    {
+      if (Score >= 750)
+      {
+        Score = Score - 750;
+        Bait = Bait + 30;
+        Menu(Score,Bait,GameProgress);
+        Console.WriteLine("\n[Bait Purchased]");
+        Thread.Sleep(3000);
+        Shop(Score,Bait,GameProgress);
+      }
+      else 
+      {
+        Console.WriteLine("\n[Insufficient Funds]");
+        Thread.Sleep(2500);
+        Shop(Score,Bait,GameProgress);
+      }
+    }
+    else if (AmountOfBaitBought == "60")
+    {
+      if (Score >= 1250)
+      {
+        Score = Score - 1250;
+        Bait = Bait + 60;
+        Menu(Score,Bait,GameProgress);
+        Console.WriteLine("\n[Bait Purchased]");
+        Thread.Sleep(2500);
+        Shop(Score,Bait,GameProgress);
+      }
+      else 
+      {
+        Console.WriteLine("\n[Insufficient Funds]");
+        Thread.Sleep(2500);
+        Shop(Score,Bait,GameProgress);
+      }
+    }
+    else
+    {
+      Shop(Score, Bait,GameProgress);
+    }
+  }
+  
+  public static void GameProgressFunction(int Score, int Bait, int[,] GameProgress)
+  {
+    Console.Clear(); //this whole section just basically checks to see if a fish has been caught, if it hasn't it will display a blank box, if it has it will display the fish, the amount of them caught and the largest one caught
+    Console.WriteLine("\n\n\n\n\n\n\n\n\n\n\n\n");
+    Console.WriteLine("###################################################");
+    Console.WriteLine("################### FISHING LOG ###################");
+    Console.WriteLine("###################################################\n");
+    if (GameProgress[0,0] > 0)
+    {
+      BlueTrout();
+      Console.WriteLine("Total Caught: "+GameProgress[0,0]);
+      Console.WriteLine("Biggest Catch: "+GameProgress[0,1]+"cm");
+    }
+    else
+    {
+      BlankFish();
+    }
+    Console.WriteLine("\n");
+    if (GameProgress[1,0] > 0)
+    {
+      WhiteBass();
+      Console.WriteLine("Total Caught: "+GameProgress[1,0]);
+      Console.WriteLine("Biggest Catch: "+GameProgress[1,1]+"cm");
+    }
+    else
+    {
+      BlankFish();
+    }
+    Console.WriteLine("\n");
+    if (GameProgress[2,0] > 0)
+    {
+      OrangeCarp();
+      Console.WriteLine("Total Caught: "+GameProgress[2,0]);
+      Console.WriteLine("Biggest Catch: "+GameProgress[2,1]+"cm");
+    }
+    else
+    {
+      BlankFish();
+    }
+    Console.WriteLine("\n");
+    if (GameProgress[3,0] > 0)
+    {
+      PinkJellyfish();
+      Console.WriteLine("Total Caught: "+GameProgress[3,0]);
+      Console.WriteLine("Biggest Catch: "+GameProgress[3,1]+"cm");
+    }
+    else
+    {
+      BlankFish();
+    }
+    Console.WriteLine("\n");
+    if (GameProgress[4,0] > 0)
+    {
+      BlackBullhead();
+      Console.WriteLine("Total Caught: "+GameProgress[4,0]);
+      Console.WriteLine("Biggest Catch: "+GameProgress[4,1]+"cm");
+    }
+    else
+    {
+      BlankFish();
+    }
+    Console.WriteLine("\n");
+    if (GameProgress[5,0] > 0)
+    {
+      NavySwordfish();
+      Console.WriteLine("Total Caught: "+GameProgress[5,0]);
+      Console.WriteLine("Biggest Catch: "+GameProgress[5,1]+"cm");
+      
+    }
+    else
+    {
+      BlankFish();
+    }
+    Console.WriteLine("\n");
+    if (GameProgress[6,0] > 0)
+    {
+      GoldenGuppy();
+      Console.WriteLine("Total Caught: "+GameProgress[6,0]);
+      Console.WriteLine("Biggest Catch: "+GameProgress[6,1]+"mm");
+    }
+    else
+    {
+      BlankFish();
+    }
+    Console.WriteLine("\n");
+    if (GameProgress[7,0] > 0)
+    {
+      Dragon();
+      Console.WriteLine("Total Caught: "+GameProgress[7,0]);
+      Console.WriteLine("Biggest Catch: "+GameProgress[7,1]+"m");
+    }
+    else
+    {
+      BlankFish();
+    }
+    if (GameProgress[0,0] >= 1 && GameProgress[1,0] >= 1 && GameProgress[2,0] >= 1 && GameProgress[2,0] >= 1 && GameProgress[4,0] >= 1 && GameProgress[5,0] >= 1 && GameProgress[6,0] >= 1 && GameProgress[7,0] >= 1)
+    {
+      Console.WriteLine("\n===== Well done Fisherman! You have found every fish there is!====="); //special statement if they complete the game
+    }
+    Console.WriteLine("\n[Press any key to go back]");
+    Console.ReadKey();
+    Menu(Score,Bait,GameProgress);
+  }
+  
+  public static void Credits(int Score, int Bait, int[,] GameProgress)
+  {
+    Console.Clear(); //credits lol
+    int TimeDelay = 2000; //this was so i could just change one value when making the game
+    int ShortTimeDelay = 1500;
+    Console.WriteLine("Thank you for playing my game :)");
+    Thread.Sleep(TimeDelay);
+    Console.WriteLine("\nHost - Randy Fisher");
+    Thread.Sleep(TimeDelay);
+    Console.WriteLine("\nShop Keeper - Billy Beach");
+    Thread.Sleep(TimeDelay);
+    Console.WriteLine("\nInspiration - Dave Hartley");
+    Thread.Sleep(TimeDelay);
+    Console.WriteLine("\nDeveloper - Max Fordham");
+    Thread.Sleep(TimeDelay);
+    Console.WriteLine("\nASCII Art - www.asciiart.eu");
+    Thread.Sleep(TimeDelay);
+    Console.WriteLine("\nAnd a special thanks to you, the player, for making this all possible");
+    Thread.Sleep(ShortTimeDelay);
+    Console.WriteLine("\n[Press any key to to back]");
+    Console.ReadKey();
+    Menu(Score, Bait, GameProgress);
+  }
+
+  public static void GameOver(int Score, int Bait, int[,] GameProgress)
+  {
+    Console.Clear();
+    Console.WriteLine("You have run out of bait!"); //game over if you run out of bait
+    Console.WriteLine("And sadly you don't have enough score to buy more...");
+    Console.WriteLine("\nWould you like to play again?");
+    Console.WriteLine("[Y/N]");
+    string UserPlayingAgain = Console.ReadLine();
+    UserPlayingAgain = UserPlayingAgain.ToUpper();
+    if (UserPlayingAgain == "Y")
+    {
+      Main();
+    }
+    else if (UserPlayingAgain == "N")
+    {
+      Quit();
+    }
+    else if (UserPlayingAgain == "T") //can go back to Developer section to revitalise yourself
+    {
+      Test(Score, Bait, GameProgress);
+    }
+    else
+    {
+      GameOver(Score,Bait,GameProgress);
+    }
+  }
+  
+  public static void Quit() //quit
+  {
+    Console.Clear();
+    Console.WriteLine("Thank you for playing my game");
+    Thread.Sleep(5000);
+    Console.Clear();
+  }
+  
+  //#=====================================#
+  //========== Developer Section ==========
+  //#=====================================#
+  public static void Test(int Score, int Bait, int[,] GameProgress)
+  {
+    Console.Clear();
+    Console.WriteLine("What would you like to look into?");
+    Console.WriteLine("(1) ASCII Art"); //view all the ascii art to maken sure it looks good
+    Console.WriteLine("(2) Game Progress log"); //see all fish caught and their sizes
+    Console.WriteLine("(3) Score and Bait"); //view and change the score and bait
+    Console.WriteLine("(4) Reset Data"); //reset all data to base settings
+    Console.WriteLine("(5) Main Menu"); //going back to main menu
+    string TestUserChoice = Console.ReadLine();
+    if (TestUserChoice == "")
+    {
+      Test(Score, Bait, GameProgress);
+    }
+    TestUserChoice = TestUserChoice.ToUpper();
+    TestUserChoice = TestUserChoice.Substring(0,1);
+    if (TestUserChoice == "1" || TestUserChoice == "A")
+    {
+      ASCIIArtDisplay(Score, Bait, GameProgress);
+    }
+    else if (TestUserChoice == "2" || TestUserChoice == "G")
+    {
+      GameProgressLog(Score, Bait, GameProgress);
+    }
+    else if (TestUserChoice == "3" || TestUserChoice == "S" || TestUserChoice == "B")
+    {
+      ScoreAndBaitChanger(Score, Bait, GameProgress);
+    }
+    else if (TestUserChoice == "4" || TestUserChoice == "R")
+    {
+      ResetData(Score,Bait,GameProgress);
+    }
+    else if (TestUserChoice == "5" || TestUserChoice == "M")
+    {
+      Menu(Score,Bait,GameProgress);
+    }
+    else 
+    {
+      Test(Score, Bait, GameProgress);
+    }
+  }
+  
+  public static void ASCIIArtDisplay(int Score, int Bait, int[,] GameProgress)
+  {
+    Console.Clear();
+    Console.WriteLine("What art would you like to be displayed?"); //every piece of ascii art
+    Console.WriteLine(" (1) Trout");
+    Console.WriteLine(" (2) Bass");
+    Console.WriteLine(" (3) Carp");
+    Console.WriteLine(" (4) Jellyfish");
+    Console.WriteLine(" (5) Bullhead");
+    Console.WriteLine(" (6) Swordfish");
+    Console.WriteLine(" (7) Guppy");
+    Console.WriteLine(" (8) Dragon");
+    Console.WriteLine(" (9) Blank box");
+    Console.WriteLine("(10) Casted Rod");
+    Console.WriteLine("(11) Pulled Rod");
+    Console.WriteLine("(12) Empty Bait Bucket");
+    Console.WriteLine("(13) Test Menu");
+    string ASCIIToDisplay = Console.ReadLine();
+    if (ASCIIToDisplay == "1")
+    {
+      Console.Clear();
+      BlueTrout();
+    }
+    else if (ASCIIToDisplay == "2")
+    {
+      Console.Clear();
+      WhiteBass();
+    }
+    else if (ASCIIToDisplay == "3")
+    {
+      Console.Clear();
+      OrangeCarp();
+    }
+    else if (ASCIIToDisplay == "4")
+    {
+      Console.Clear();
+      PinkJellyfish();
+    }
+    else if (ASCIIToDisplay == "5")
+    {
+      Console.Clear();
+      BlackBullhead();
+    }
+    else if (ASCIIToDisplay == "6")
+    {
+      Console.Clear();
+      NavySwordfish();
+    }
+    else if (ASCIIToDisplay == "7")
+    {
+      Console.Clear();
+      GoldenGuppy();
+    }
+    else if (ASCIIToDisplay == "8")
+    {
+      Console.Clear();
+      Dragon();
+    }
+    else if (ASCIIToDisplay == "9")
+    {
+      Console.Clear();
+      BlankFish();
+    }
+    else if (ASCIIToDisplay == "10")
+    {
+      Console.Clear();
+      FishingRod();
+    }
+    else if (ASCIIToDisplay == "11")
+    {
+      Console.Clear();
+      PulledFishingRod();
+    }
+    else if (ASCIIToDisplay == "12")
+    {
+      Console.Clear();
+      EmptyBaitBucket();
+    }
+    else if (ASCIIToDisplay == "13")
+    {
+      Test(Score, Bait, GameProgress);
+    }
+    else
+    {
+      ASCIIArtDisplay(Score, Bait, GameProgress);
+    }
+    Console.WriteLine("\n[Press any key to go back]"); //to go back and display more
+    Console.ReadKey();
+    ASCIIArtDisplay(Score, Bait, GameProgress);
+  }
+  
+  public static void GameProgressLog(int Score, int Bait, int[,] GameProgress)
+  {
+    Console.Clear(); //displays the 2d array in a much more readable way
+    Console.WriteLine("Fish Type  - Times Caught - Biggest Catch\n");
+    Console.WriteLine("Trout      -      "+GameProgress[0,0]+"       -      "+GameProgress[0,1]);
+    Console.WriteLine("Bass       -      "+GameProgress[1,0]+"       -      "+GameProgress[1,1]);
+    Console.WriteLine("Carp       -      "+GameProgress[2,0]+"       -      "+GameProgress[2,1]);
+    Console.WriteLine("Jellyfish  -      "+GameProgress[3,0]+"       -      "+GameProgress[3,1]);
+    Console.WriteLine("Bullhead   -      "+GameProgress[4,0]+"       -      "+GameProgress[4,1]);
+    Console.WriteLine("Swordfish  -      "+GameProgress[5,0]+"       -      "+GameProgress[5,1]);
+    Console.WriteLine("Guppy      -      "+GameProgress[6,0]+"       -      "+GameProgress[6,1]);
+    Console.WriteLine("Dragon     -      "+GameProgress[7,0]+"       -      "+GameProgress[7,1]);
+    Console.WriteLine("\n[Press any key to return]");
+    Console.ReadKey();
+    Test(Score, Bait, GameProgress);
+  }
+
+  public static void ScoreAndBaitChanger(int Score, int Bait, int[,] GameProgress)
+  {
+    Console.Clear();
+    bool Looper = false;
+    Console.WriteLine("Score: "+Score); //changes the score and bait
+    Console.WriteLine("Bait: "+Bait+"\n");
+    Console.WriteLine("What value would you like to change?");
+    Console.WriteLine("(1) Score");
+    Console.WriteLine("(2) Bait");
+    Console.WriteLine("(3) Test Menu");
+    string SBValueChanger = Console.ReadLine();
+    SBValueChanger = SBValueChanger.Substring(0,1);
+    SBValueChanger = SBValueChanger.ToUpper();
+    if (SBValueChanger == "1" || SBValueChanger == "S")
+    {
+      while (Looper == false) //looper to make sure a valid input is input
+      {
+        Console.Clear();
+        Console.WriteLine("What would you like the score to be changed to?");
+        Console.WriteLine("[Type 'C' to cancel]");
+        string NewScoreString = Console.ReadLine();
+        if (NewScoreString == "C" || NewScoreString == "c")
+        {
+          ScoreAndBaitChanger(Score, Bait, GameProgress);
+        }
+        try //trys to parse to an int, but there is a fail safe if if cannot
+        {
+          int NewScoreInt = Int32.Parse(NewScoreString);
+          Score = NewScoreInt;
+          Looper = true;
+        }
+        catch (Exception e) //failsafe
+        {
+          Console.WriteLine("\n[Invalid Input]");
+          Thread.Sleep(2000);
+        }
+      }
+      Console.Clear();
+      Console.WriteLine("Score has been changed to "+Score); //shows the user what the score has been changed to
+      Console.WriteLine("[Press any key to go back]");
+      Console.ReadKey();
+      ScoreAndBaitChanger(Score, Bait, GameProgress);
+    }
+    else if (SBValueChanger == "2" || SBValueChanger == "B")
+    {
+      while (Looper == false)
+      {
+        Console.Clear();
+        Console.WriteLine("What would you like the bait to be changed to?");
+        Console.WriteLine("[Type 'C' to cancel]");
+        string NewBaitString = Console.ReadLine();
+        if (NewBaitString == "C" || NewBaitString == "c")
+        {
+          ScoreAndBaitChanger(Score, Bait, GameProgress);
+        }
+        try
+        {
+          int NewBaitInt = Int32.Parse(NewBaitString);
+          Bait = NewBaitInt;
+          Looper = true;
+        }
+        catch (Exception e)
+        {
+          Console.WriteLine("\n[Invalid Input]");
+          Thread.Sleep(2000);
+        }
+      }
+      Console.Clear();
+      Console.WriteLine("Bait has been changed to "+Score);
+      Console.WriteLine("[Press any key to go back]");
+      Console.ReadKey();
+      ScoreAndBaitChanger(Score, Bait, GameProgress);
+    }
+    else if (SBValueChanger == "3" || SBValueChanger == "M")
+    {
+      Test(Score, Bait, GameProgress);
+    }
+    else 
+    {
+      ScoreAndBaitChanger(Score, Bait, GameProgress);
+    }
+  }
+  
+  public static void ResetData(int Score, int Bait, int[,] GameProgress)
+  {
+    Console.Clear();
+    Console.WriteLine("To Reset all data type 'RESET - type 'CANCEL' to cancel");
+    string Reset = Console.ReadLine();
+    Reset = Reset.ToUpper();
+    if (Reset == "RESET")
+    {
+      GameProgress[0,0] = 0; //resets every data value back to default settings
+      GameProgress[1,0] = 0;
+      GameProgress[2,0] = 0;
+      GameProgress[3,0] = 0;
+      GameProgress[4,0] = 0;
+      GameProgress[5,0] = 0;
+      GameProgress[6,0] = 0;
+      GameProgress[7,0] = 0;
+      GameProgress[0,1] = 0;
+      GameProgress[1,1] = 0;
+      GameProgress[2,1] = 0;
+      GameProgress[3,1] = 0;
+      GameProgress[4,1] = 0;
+      GameProgress[5,1] = 0;
+      GameProgress[6,1] = 0;
+      GameProgress[7,1] = 0;
+      Score = 0;
+      Bait = 20;
+      Console.WriteLine("[All data reset]");
+      Thread.Sleep(2000);
+      Test(Score, Bait, GameProgress);
+    }
+    else if (Reset == "CANCEL")
+    {
+      Console.WriteLine("[Canceled, all data kept]");
+      Thread.Sleep(2000);
+      Test(Score, Bait, GameProgress);
+    }
+    else
+    {
+      ResetData(Score, Bait, GameProgress);
+    }
+  }
+  
+  //#=================================#
+  //======== ASCII Art Section ========
+  //#=================================#
+  public static void FishingRod()
+  {
+    Console.WriteLine("            _");
+    Console.WriteLine("           //\\");
+    Console.WriteLine("          //  |");
+    Console.WriteLine("         //   \\");
+    Console.WriteLine("        //     |");
+    Console.WriteLine("       //       \\");
+    Console.WriteLine("     _// O       |");
+    Console.WriteLine("    /  \\/        \\");
+    Console.WriteLine("    \\__/         | _");
+    Console.WriteLine("    //         ~~~/_\\~~~");
+    Console.WriteLine("   //             \\_/");
+    Console.WriteLine("  //");
+    Console.WriteLine(" //");
+    Console.WriteLine(" ¯");
+  }
+  
+  public static void PulledFishingRod()
+  {
+    Console.WriteLine("            _");
+    Console.WriteLine("           //--_____");
+    Console.WriteLine("          //       --_____");
+    Console.WriteLine("         //              --_____");
+    Console.WriteLine("        //                     --_____");
+    Console.WriteLine("       //                            --_____");
+    Console.WriteLine("     _//                                   --______");
+    Console.WriteLine("    /  \\                                      ~~~/_\\~~~");
+    Console.WriteLine("    \\__/\\                                        \\_/");
+    Console.WriteLine("    //   O");  
+    Console.WriteLine("   //");
+    Console.WriteLine("  //");
+    Console.WriteLine(" //");
+    Console.WriteLine(" ¯");
+  }
+  
+  public static void BlueTrout()
+  {
+    Console.WriteLine("#------=Blue Trout=------#");
+    Console.WriteLine("|            /`·.¸       |");
+    Console.WriteLine("|       /¸...¸`:·        |");
+    Console.WriteLine("|   ¸.·´  ¸   `·.¸.·´)   |");
+    Console.WriteLine("|  : © ):´;      ¸  {    |");
+    Console.WriteLine("|   `·.¸ `·  ¸.·´\\`·¸)   |");
+    Console.WriteLine("|       `\\´´\\¸.·´        |");
+    Console.WriteLine("#------------------------#");
+  }
+  
+  public static void WhiteBass()
+  {
+    Console.WriteLine("#------=White Bass=------#");
+    Console.WriteLine("|      |\\   \\\\\\\\__       |");
+    Console.WriteLine("|      | \\_/    o \\      |");
+    Console.WriteLine("|      > _   (( <_       |");
+    Console.WriteLine("|      | / \\__+___/      |");    
+    Console.WriteLine("|      |/     |/         |");
+    Console.WriteLine("#------------------------#");
+  }
+  
+  public static void OrangeCarp()
+  {
+    Console.WriteLine("#----=Orange Carp=---#");
+    Console.WriteLine("|       /\\           |");
+    Console.WriteLine("|     _/./           |");
+    Console.WriteLine("|  ,-'    `-:..-'/   |");
+    Console.WriteLine("| : o )      _  (    |");
+    Console.WriteLine("| '`-....,--; `-.\\   |");
+    Console.WriteLine("|    `'              |");
+    Console.WriteLine("#--------------------#");
+  }
+  
+  public static void PinkJellyfish()
+  {
+    Console.WriteLine("#---=Pink Jellyfish=----#");
+    Console.WriteLine("|        _______        |");
+    Console.WriteLine("|   ,-~~~       ~~~-,   |");
+    Console.WriteLine("|  (                 )  |");
+    Console.WriteLine("|   \\_-, , , , , ,-_/   |");
+    Console.WriteLine("|      / / | | \\ \\      |");
+    Console.WriteLine("|      | | | | | |      |");
+    Console.WriteLine("|      | | | | | |      |");
+    Console.WriteLine("|     / / /   \\ \\ \\     |");
+    Console.WriteLine("|     | | |   | | |     |");
+    Console.WriteLine("#-----------------------#");
+  }
+  
+  public static void BlackBullhead()
+  {
+    Console.WriteLine("#--=Black Bullhead=--#");
+    Console.WriteLine("|       ,-----.      |");
+    Console.WriteLine("|      /____  /      |");
+    Console.WriteLine("|     /     \\/ _     |");
+    Console.WriteLine("|    / O     \\/ |    |");
+    Console.WriteLine("|    >          |    |");
+    Console.WriteLine("|    \\ <)    /\\_|    |");
+    Console.WriteLine("|    \\_____/\\        |");
+    Console.WriteLine("|     \\      \\       |");
+    Console.WriteLine("|      `-----'       |");
+    Console.WriteLine("#--------------------#");
+  }
+  
+  public static void NavySwordfish()
+  {
+    Console.WriteLine("#------=Navy Swordfish=------#");
+    Console.WriteLine("|          /'*._         _   |");
+    Console.WriteLine("|       .-*'`    `*-.._.-'/  |");
+    Console.WriteLine("| ---=< * ))     ,       (   |");
+    Console.WriteLine("|       `*-._`._(__.--*'`.\\  |");
+    Console.WriteLine("#----------------------------#");
+  }
+  
+  public static void GoldenGuppy()
+  {
+    Console.WriteLine("#--------=Golden Guppy=--------#");
+    Console.WriteLine("|               ___            |");
+    Console.WriteLine("|            _ / __)_          |"); 
+    Console.WriteLine("|   _      .'_'-'\\ /-'-.       |");
+    Console.WriteLine("|   \\'-._.'-'\\ / _\\-(O)_:      |");
+    Console.WriteLine("|    \\ (__\\/_ \\ '._)  _\\       |");
+    Console.WriteLine("|    /.' (_.'----''./'         |");
+    Console.WriteLine("#------------------------------#");
+  }
+  
+  public static void Dragon()
+  {
+    Console.WriteLine("#----------------=Water Dragon=----------------#");
+    Console.WriteLine("|              ______________                  |");
+    Console.WriteLine("|        ,===:'.,            `-._              |");
+    Console.WriteLine("|             `:.`---.__         `-._          |");
+    Console.WriteLine("|                `:.     `--.         `.       |");
+    Console.WriteLine("|                 \\.        `.         `.      |");
+    Console.WriteLine("|         (,,(,    \\.         `.   ____,-`.,   |");
+    Console.WriteLine("|       (,'     `/   \\.   ,--.___`.'           |");
+    Console.WriteLine("|   ,  ,'  ,--.  `,   \\.;'         `.          |");
+    Console.WriteLine("|   `{D, {    \\  :    \\;                       |");
+    Console.WriteLine("|     V,,'    /  /    //                       |");
+    Console.WriteLine("|     j;;    /  ,' ,-//.    ,---.      ,       |");
+    Console.WriteLine("|     \\;'   /  ,' /  _  \\  /  _  \\   ,'/       |");
+    Console.WriteLine("|           \\   `'  / \\  `'  / \\  `.' /        |");
+    Console.WriteLine("|            `.___,'   `.__,'   `.__,'         |");
+    Console.WriteLine("#----------------------------------------------#");
+  }
+  
+  public static void BlankFish()
+  {
+    Console.WriteLine("#---------=UNDISCOVERED=---------#");
+    Console.WriteLine("|                                |");
+    Console.WriteLine("|                                |");
+    Console.WriteLine("|                                |");
+    Console.WriteLine("|                                |");
+    Console.WriteLine("|                                |");
+    Console.WriteLine("|                                |");
+    Console.WriteLine("|                                |");
+    Console.WriteLine("#--------------------------------#");
+  }
+  
+  public static void EmptyBaitBucket()
+  {
+    Console.WriteLine("          _______");
+    Console.WriteLine("      _.-()______)-.");
+    Console.WriteLine("    .'               '.");
+    Console.WriteLine("   /                   \\");
+    Console.WriteLine("  :      _________      :");
+    Console.WriteLine("  |.--'''         '''--.|");
+    Console.WriteLine("  (                     )");
+    Console.WriteLine("  :'--..._________...--':");
+    Console.WriteLine("  :                     :");
+    Console.WriteLine("   :                   :");
+    Console.WriteLine("   :        00         :");
+    Console.WriteLine("    :      Bait       :");
+    Console.WriteLine("    :      Left       :");
+    Console.WriteLine("     :               :");
+    Console.WriteLine("     :               :");
+    Console.WriteLine("      :             :");
+    Console.WriteLine("      :_           _:");
+    Console.WriteLine("        '''-----'''");
+  }
+}
