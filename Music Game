@@ -1,1 +1,364 @@
+#importing different things
+import time #for pauses to slow the game down
+from random import randint #for deciding a random song
 
+#----------------------------------------------------------------------------------------------------------------------------------------------------------#
+
+def Authentication(): #authenticating the user
+    global name
+    global password
+    name = ""
+    password = "" #setting password to a blank variable
+    while name == "": #makes sure they enter a name
+        name = input("Please enter your name: ") #name is whatever you want, this is what gets put in scoreboard
+    name = name.title() #making all the names look the same
+    while password != "25035":
+        password = input("Please enter the password: ")
+        if password == "25035": #password is same for everyone, my number
+            print("Correct password - Access Granted") #correct password
+            print() #separates the text up
+        else:
+            print("Incorrect password, please try again")
+            print() #separates the text up
+
+#----------------------------------------------------------------------------------------------------------------------------------------------------------#
+
+def Song_Selection(): #opens the file and selects a random score
+    global ID #ID of the song
+    global artist #artist of the song
+    global title #title of the song
+    global random_song #picking a random number
+    global remix_song #to take song out for format changing
+    global remix_artist #to take artist out of function
+    random_song = int(randint(1,82))
+    songsFile = open("songs.txt","r") #opening the file
+    songsRec = songsFile.readline()
+    while songsRec != "": #looking for end of line
+        field = songsRec.split(",")
+        ID = field[0]
+        artist = field[1] #setting all the variables to fields
+        title = field[2]
+        if int(ID) == int(random_song):
+            remix_song = title
+            remix_artist = artist
+        songsRec = songsFile.readline()
+    songsFile.close() #closing the file
+    
+#----------------------------------------------------------------------------------------------------------------------------------------------------------#
+
+def Song_Format_Changing(): #making the song display as: [ [LETTER] _ _ _ _ _ ]
+    global i #counting variable
+    global random_song
+    i = 0
+    global j #counting variable
+    j = -1
+    global edited_song
+    edited_song = [] #list for the song to get changed into
+    global amount_of_words
+    amount_of_words = len(remix_song.split())
+    while i < (len(remix_song)):
+        if remix_song[i] == " ": #checks for a space
+            edited_song.append(" ")
+        elif remix_song[i] != " " and remix_song[j] == " ": #checks for a letter that starts a word
+            edited_song.append(remix_song[i])
+        elif i == 0: #checks for start letter
+            edited_song.append(remix_song[0])
+        else: #checks for a normal letter
+            edited_song.append("_")
+        i = i + 1 #used for searching
+        j = j + 1 #used for searching
+    del edited_song[-1] #keeps it the right amount of letters
+
+#---------------------------------------------------------------------------------------------------------------------------------------------------------#
+
+def Score(): #sets score to 0
+    global score
+    score = int(0) #keeping it an integer
+    
+#---------------------------------------------------------------------------------------------------------------------------------------------------------#
+
+def Adding_Score_3(): #adds 3 to score
+    global score
+    score = score + 3 #adding on first try
+    
+#---------------------------------------------------------------------------------------------------------------------------------------------------------#
+
+def Adding_Score_1():#adds 1 to score
+    global score
+    score = score + 1 #adidng on second try
+    
+#---------------------------------------------------------------------------------------------------------------------------------------------------------#
+
+def High_Scores_File_Writing(): #writing names to file
+    global score
+    global name
+    leaderboard = open("highscores.txt","a") #opens the file
+    score = str(score) #makes score a string
+    score_name = (name+","+score) #combines the score and name
+    leaderboard.write(score_name+"\n") #writes it to the file
+    leaderboard.close() #closes the file
+
+#---------------------------------------------------------------------------------------------------------------------------------------------------------#
+
+def High_Scores_File_Reading(): #reading file to print top 5 players
+    global score_table_big
+    global score_table_mini
+    score_table_big = [] #big table full of tables
+    score_table_mini = [] #mini tables to go in the big table
+    highscoresFile = open("highscores.txt","r") #putting the file in read mode
+    for row in highscoresFile:
+        highscoresRec = row.split(",")
+        name = str(highscoresRec[0]) #finding the name of the player
+        highscores = int(highscoresRec[1]) #finding the score of the player
+        score_table_mini.append(name) #putting the name in the mini table
+        score_table_mini.append(highscores) #putting the score in the mini table
+        score_table_big.append(score_table_mini) #putting the mini table in the big table
+        score_table_mini = [] #emptying the mini table
+    sortedTable = sorted(score_table_big, key=lambda x:x[1], reverse=True) #sorts big table, lambda is a blank variable, 'x;x[1]' means look at the second value, reverse is true
+    print("\nTop 5 Scores -") #title of the scoreboard
+    for n in range (5): #so it only shows the top 5 scores
+        print(sortedTable[n][0],sortedTable[n][1])
+    highscoresFile.close() #can't forget to close the file
+
+#---------------------------------------------------------------------------------------------------------------------------------------------------------#
+    
+def Playing_Game(): #running the game and combining all the functions and extra code
+    global guess
+    global edited_guess
+    global edited_remix_song
+    global lives
+    global loop  #global variables list
+    global remix_artist
+    global edited_song
+    global score
+    global play_again
+    global name
+    play_again = "y" #lets the player go again
+    while play_again == "y":
+        loop = True
+        Score() #setting the score to 0 at the start of each code
+        while loop == True:
+            Song_Selection() #functions that repeat the process of selecting a new song each time
+            Song_Format_Changing()
+            print("The song is written by",remix_artist)
+            print(*edited_song)
+            guess = input("Please enter what you think the song will be: ") #getting a guess from user
+            guess = guess.title()  #makes it non-case sensitive
+            edited_guess = guess.strip("\n") #removes the enter from the file
+            edited_remix_song = remix_song.strip("\n") #removes the enter from the file        
+            if edited_guess == edited_remix_song: #seeing if it is correct
+                print("Correct!")
+                Adding_Score_3() #adding 3 points
+            elif edited_guess != edited_remix_song: #checks for the second attempt
+                print("Incorrect!")
+                print("Please try again")
+                guess_2 = input("")
+                guess_2 = guess_2.title() #makes it non-case sensitive
+                edited_guess_2 = guess_2.strip("\n") #removes the enter from the file
+                if edited_guess_2 == edited_remix_song:
+                    print("Correct on second attempt!")
+                    Adding_Score_1() #adding 1 point
+                else:
+                    print("GAME OVER") #big dramatic letters to end the game
+                    if score == 1:
+                        print("You got",score,"point") #checks if the score is 1 to change the grammar so it is grammatically correct
+                    else:
+                        print("You got",score,"points") #else, keeps the 's' on 'points'
+                    break
+            print() #separates each round
+            time.sleep(1) #slows the game down a little
+        High_Scores_File_Writing() #writing name and score to file
+        High_Scores_File_Reading() #sorting and printing top 5 scores
+        play_again = input("Do you want to play again? (y/n) ") #lets player go again
+        if play_again != "y":
+            break
+
+#----------------------------------------------------------------------------------------------------------------------------------------------------------#
+  
+#PROGRAM AS FUNCTIONS
+Authentication()
+Playing_Game()
+
+Attachments area
+Reply
+Forward
+#importing different things
+import time #for pauses to slow the game down
+from random import randint #for deciding a random song
+
+#----------------------------------------------------------------------------------------------------------------------------------------------------------#
+
+def Authentication(): #authenticating the user
+    global name
+    global password
+    name = ""
+    password = "" #setting password to a blank variable
+    while name == "": #makes sure they enter a name
+        name = input("Please enter your name: ") #name is whatever you want, this is what gets put in scoreboard
+    name = name.title() #making all the names look the same
+    while password != "25035":
+        password = input("Please enter the password: ")
+        if password == "25035": #password is same for everyone, my number
+            print("Correct password - Access Granted") #correct password
+            print() #separates the text up
+        else:
+            print("Incorrect password, please try again")
+            print() #separates the text up
+
+#----------------------------------------------------------------------------------------------------------------------------------------------------------#
+
+def Song_Selection(): #opens the file and selects a random score
+    global ID #ID of the song
+    global artist #artist of the song
+    global title #title of the song
+    global random_song #picking a random number
+    global remix_song #to take song out for format changing
+    global remix_artist #to take artist out of function
+    random_song = int(randint(1,82))
+    songsFile = open("songs.txt","r") #opening the file
+    songsRec = songsFile.readline()
+    while songsRec != "": #looking for end of line
+        field = songsRec.split(",")
+        ID = field[0]
+        artist = field[1] #setting all the variables to fields
+        title = field[2]
+        if int(ID) == int(random_song):
+            remix_song = title
+            remix_artist = artist
+        songsRec = songsFile.readline()
+    songsFile.close() #closing the file
+    
+#----------------------------------------------------------------------------------------------------------------------------------------------------------#
+
+def Song_Format_Changing(): #making the song display as: [ [LETTER] _ _ _ _ _ ]
+    global i #counting variable
+    global random_song
+    i = 0
+    global j #counting variable
+    j = -1
+    global edited_song
+    edited_song = [] #list for the song to get changed into
+    global amount_of_words
+    amount_of_words = len(remix_song.split())
+    while i < (len(remix_song)):
+        if remix_song[i] == " ": #checks for a space
+            edited_song.append(" ")
+        elif remix_song[i] != " " and remix_song[j] == " ": #checks for a letter that starts a word
+            edited_song.append(remix_song[i])
+        elif i == 0: #checks for start letter
+            edited_song.append(remix_song[0])
+        else: #checks for a normal letter
+            edited_song.append("_")
+        i = i + 1 #used for searching
+        j = j + 1 #used for searching
+    del edited_song[-1] #keeps it the right amount of letters
+
+#---------------------------------------------------------------------------------------------------------------------------------------------------------#
+
+def Score(): #sets score to 0
+    global score
+    score = int(0) #keeping it an integer
+    
+#---------------------------------------------------------------------------------------------------------------------------------------------------------#
+
+def Adding_Score_3(): #adds 3 to score
+    global score
+    score = score + 3 #adding on first try
+    
+#---------------------------------------------------------------------------------------------------------------------------------------------------------#
+
+def Adding_Score_1():#adds 1 to score
+    global score
+    score = score + 1 #adidng on second try
+    
+#---------------------------------------------------------------------------------------------------------------------------------------------------------#
+
+def High_Scores_File_Writing(): #writing names to file
+    global score
+    global name
+    leaderboard = open("highscores.txt","a") #opens the file
+    score = str(score) #makes score a string
+    score_name = (name+","+score) #combines the score and name
+    leaderboard.write(score_name+"\n") #writes it to the file
+    leaderboard.close() #closes the file
+
+#---------------------------------------------------------------------------------------------------------------------------------------------------------#
+
+def High_Scores_File_Reading(): #reading file to print top 5 players
+    global score_table_big
+    global score_table_mini
+    score_table_big = [] #big table full of tables
+    score_table_mini = [] #mini tables to go in the big table
+    highscoresFile = open("highscores.txt","r") #putting the file in read mode
+    for row in highscoresFile:
+        highscoresRec = row.split(",")
+        name = str(highscoresRec[0]) #finding the name of the player
+        highscores = int(highscoresRec[1]) #finding the score of the player
+        score_table_mini.append(name) #putting the name in the mini table
+        score_table_mini.append(highscores) #putting the score in the mini table
+        score_table_big.append(score_table_mini) #putting the mini table in the big table
+        score_table_mini = [] #emptying the mini table
+    sortedTable = sorted(score_table_big, key=lambda x:x[1], reverse=True) #sorts big table, lambda is a blank variable, 'x;x[1]' means look at the second value, reverse is true
+    print("\nTop 5 Scores -") #title of the scoreboard
+    for n in range (5): #so it only shows the top 5 scores
+        print(sortedTable[n][0],sortedTable[n][1])
+    highscoresFile.close() #can't forget to close the file
+
+#---------------------------------------------------------------------------------------------------------------------------------------------------------#
+    
+def Playing_Game(): #running the game and combining all the functions and extra code
+    global guess
+    global edited_guess
+    global edited_remix_song
+    global lives
+    global loop  #global variables list
+    global remix_artist
+    global edited_song
+    global score
+    global play_again
+    global name
+    play_again = "y" #lets the player go again
+    while play_again == "y":
+        loop = True
+        Score() #setting the score to 0 at the start of each code
+        while loop == True:
+            Song_Selection() #functions that repeat the process of selecting a new song each time
+            Song_Format_Changing()
+            print("The song is written by",remix_artist)
+            print(*edited_song)
+            guess = input("Please enter what you think the song will be: ") #getting a guess from user
+            guess = guess.title()  #makes it non-case sensitive
+            edited_guess = guess.strip("\n") #removes the enter from the file
+            edited_remix_song = remix_song.strip("\n") #removes the enter from the file        
+            if edited_guess == edited_remix_song: #seeing if it is correct
+                print("Correct!")
+                Adding_Score_3() #adding 3 points
+            elif edited_guess != edited_remix_song: #checks for the second attempt
+                print("Incorrect!")
+                print("Please try again")
+                guess_2 = input("")
+                guess_2 = guess_2.title() #makes it non-case sensitive
+                edited_guess_2 = guess_2.strip("\n") #removes the enter from the file
+                if edited_guess_2 == edited_remix_song:
+                    print("Correct on second attempt!")
+                    Adding_Score_1() #adding 1 point
+                else:
+                    print("GAME OVER") #big dramatic letters to end the game
+                    if score == 1:
+                        print("You got",score,"point") #checks if the score is 1 to change the grammar so it is grammatically correct
+                    else:
+                        print("You got",score,"points") #else, keeps the 's' on 'points'
+                    break
+            print() #separates each round
+            time.sleep(1) #slows the game down a little
+        High_Scores_File_Writing() #writing name and score to file
+        High_Scores_File_Reading() #sorting and printing top 5 scores
+        play_again = input("Do you want to play again? (y/n) ") #lets player go again
+        if play_again != "y":
+            break
+
+#----------------------------------------------------------------------------------------------------------------------------------------------------------#
+  
+#PROGRAM AS FUNCTIONS
+Authentication()
+Playing_Game()
