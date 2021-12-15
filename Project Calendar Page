@@ -1,0 +1,232 @@
+//
+//  Calendar.swift
+//  My Epilepsy
+//
+//  Created by Max Fordham on 11/07/2021.
+//
+
+import SwiftUI
+
+struct Calendar: View {
+    
+    @Binding var AverageSeverity: Double
+    @State var TempTotal = 1
+    @State var TempTotalSum = 0
+    
+    @Environment(\.managedObjectContext) private var viewContext
+    
+    @FetchRequest(sortDescriptors: [NSSortDescriptor(keyPath: \SeizuresAndDocApps.dateDate, ascending: false)])
+    private var seizuresdocapps: FetchedResults<SeizuresAndDocApps>
+    
+    @State var isPresented = false
+    @State var isPresentedEdit = false
+    
+    @AppStorage("showSeizures") var showSeizures: Bool = true
+    @AppStorage("showDoctorsAppts") var showDoctorsAppts: Bool = true
+    
+    var body: some View {
+        VStack {
+            List {
+                Section(header: Text("Toggles")) {
+                    Toggle(isOn: $showSeizures) {
+                        Text("Show seizures?")
+                    }
+                    Toggle(isOn: $showDoctorsAppts) {
+                        Text("Show doctors appointments?")
+                    }
+                }
+                ForEach(seizuresdocapps) { seizuresdocapps in
+                    
+                    //what the log will display like if it is a seizure
+                    if(seizuresdocapps.isSeizure == true && showSeizures == true) {
+                        //TempTotalSum = TempTotalSum + seizuresdocapps.severity
+                        VStack {
+                            HStack {
+                                Text(seizuresdocapps.stringDate ?? "Unknown date")
+                                    .font(.title3)
+                                Spacer()
+                            }
+                            HStack {
+                                Text("Activity:")
+                                    .foregroundColor(Color(seizuresdocapps.colour ?? "FailedColour"))
+                                    .fontWeight(.bold)
+                                Text(seizuresdocapps.activity ?? "Unknown activity")
+                                Spacer()
+                            }
+                            HStack {
+                                Text("Location:")
+                                    .foregroundColor(Color(seizuresdocapps.colour ?? "FailedColour"))
+                                    .fontWeight(.bold)
+                                Text(seizuresdocapps.stringLocation ?? "Unknown location")
+                                Spacer()
+                            }
+                            HStack {
+                                Text("Severity:")
+                                    .foregroundColor(Color(seizuresdocapps.colour ?? "FailedColour"))
+                                    .fontWeight(.bold)
+                                Text("\(seizuresdocapps.severity, specifier: "%.0f")")
+                                Spacer()
+                            }
+                            HStack {
+                                if(seizuresdocapps.extraDetails != "") {
+                                        Text("Notes:")
+                                            .foregroundColor(Color(seizuresdocapps.colour ?? "FailedColour"))
+                                            .fontWeight(.bold)
+                                    Text(seizuresdocapps.extraDetails ?? "")
+                                    Spacer()
+                                }
+                            }
+                        }
+                        .padding(20)
+                        .overlay(RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color(seizuresdocapps.colour ?? "FailedColour"), lineWidth: 4))
+                        .onTapGesture(count: 1) {
+                            self.isPresentedEdit.toggle() //this code is a placeholder for when iOS 15 and new Xcode version comes out
+                        }
+                    }
+                    
+                    //what the log will look like if it is a doctors appointment
+                    else if(seizuresdocapps.isSeizure == false && showDoctorsAppts == true) {
+                        VStack {
+                            HStack {
+                                Text(seizuresdocapps.stringDate ?? "Unknown date")
+                                    .font(.title3)
+                                Spacer()
+                            }
+                            HStack {
+                                Text("Location:")
+                                    .foregroundColor(Color(seizuresdocapps.colour ?? "FailedColour"))
+                                    .fontWeight(.bold)
+                                Text(seizuresdocapps.stringLocation ?? "Unknown location")
+                                Spacer()
+                            }
+                            HStack {
+                                if(seizuresdocapps.extraDetails != "") {
+                                    Text("Notes:")
+                                        .foregroundColor(Color(seizuresdocapps.colour ?? "FailedColour"))
+                                        .fontWeight(.bold)
+                                    Text(seizuresdocapps.extraDetails ?? "")
+                                }
+                                Spacer()
+                            }
+                        }
+                        .padding(20)
+                        .overlay(RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color(seizuresdocapps.colour ?? "FailedColour"), lineWidth: 4))
+                        .onTapGesture(count: 1) {
+                            print("Doctor's appointment tapped")
+                        }
+                    }
+                }.onDelete(perform: deleteLog)
+                Section(header: Text("Statistics")) {
+                    Text("Average Severity: \(AverageSeverity, specifier: "%.00f")")
+                    HStack {
+                        Spacer()
+                        Button {
+                            /*ForEach(seizuresdocapps) { seizuresdocapps in
+                                if(seizuresdocapps.isSeizure == true) {
+                                    //TempTotalSum = TempTotalSum + Int(seizuresdocapps.severity)
+                                    TempTotal = TempTotal + 1
+                                }
+                            }*/
+                            AverageSeverity = Double(TempTotalSum / TempTotal)
+                        } label: {
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color("ButtonColour"))
+                                .frame(width: 100, height: 30)
+                                .overlay(Text("Update").foregroundColor(.accentColor))
+                        }
+                        Spacer()
+                    }
+                }
+            }
+            .sheet(isPresented: $isPresented) {
+                AddLog { latitude, longitude, severity, activity, colour, stringDate, stringLocation, isSeizure, dateDate, extraDetails in
+                    addSeizureDocApp(latitude: latitude,
+                                        longtitude: longitude,
+                                        severity: severity,
+                                        activity: activity,
+                                        colour: colour,
+                                        stringDate: stringDate,
+                                        stringLocation: stringLocation,
+                                        isSeizure: isSeizure,
+                                        dateDate: dateDate,
+                                        extraDetails: extraDetails)
+                    self.isPresented = false}}
+            //place holder sheet
+            .sheet(isPresented: $isPresentedEdit) {
+                EditSeizure()}
+            
+            .navigationTitle("Calendar")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        self.isPresented.toggle()
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                }
+            }
+        }
+    }
+    
+    private func addSeizureDocApp(latitude: Double, longtitude: Double, severity: Double, activity: String, colour: String, stringDate: String, stringLocation: String, isSeizure: Bool, dateDate: Date, extraDetails: String) {
+        withAnimation {
+            let newLog = SeizuresAndDocApps(context: viewContext)
+            newLog.latitude = latitude
+            newLog.longitude = longtitude
+            newLog.severity = severity
+            newLog.activity = activity
+            newLog.colour = colour
+            newLog.stringDate = stringDate
+            newLog.stringLocation = stringLocation
+            newLog.isSeizure = isSeizure
+            newLog.dateDate = dateDate
+            newLog.extraDetails = extraDetails
+            
+            saveContext()
+        }
+    }
+    
+    private func editSeizure(latitude: Double, longtitude: Double, severity: Double, activity: String, colour: String, stringDate: String, stringLocation: String, isSeizure: Bool, dateDate: Date, extraDetails: String) {
+        withAnimation {
+            let editLog = SeizuresAndDocApps(context: viewContext)
+            editLog.latitude = latitude
+            editLog.longitude = longtitude
+            editLog.severity = severity
+            editLog.activity = activity
+            editLog.colour = colour
+            editLog.stringDate = stringDate
+            editLog.stringLocation = stringLocation
+            editLog.isSeizure = isSeizure
+            editLog.dateDate = dateDate
+            editLog.extraDetails = extraDetails
+            
+            saveContext()
+        }
+    }
+
+    private func saveContext() {
+        do {
+            try viewContext.save()
+        } catch {
+            let error = error as NSError
+            fatalError("Unresolved Error: \(error)")
+        }
+    }
+    
+    private func deleteLog(offsets: IndexSet) {
+        withAnimation {
+            offsets.map { seizuresdocapps[$0] }.forEach(viewContext.delete)
+            saveContext()
+        }
+    }
+}
+
+/*
+struct Calendar_Previews: PreviewProvider {
+    static var previews: some View {
+        Calendar()
+    }
+}
+ */
