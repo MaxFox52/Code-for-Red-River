@@ -1,0 +1,279 @@
+//
+//  ContentView.swift
+//  My Epilepsy
+//
+//  Created by Max Fordham on 09/07/2021.
+//
+
+import SwiftUI
+
+struct HomePage: View {
+    
+    @State var isPresented3 = false
+    @State var isPresentedEditMedication = false
+    @State var isPresentedEditLastSeizure = false
+    
+    @AppStorage("ShowMedicationBool") var ShowMedicationBool: Bool = true
+    @AppStorage("TimeSinceSeizureBool") var TimeSinceSeizureBool: Bool = true
+    @AppStorage("NumOfAwardsWonBool") var NumOfAwardsWonBool: Bool = true
+    @AppStorage("MostRecentAwardBool") var MostRecentAwardBool: Bool = true
+    @AppStorage("MedicationTakenToday") var MedicationTakenToday: Bool = true
+    
+    //@AppStorage("testerDate") var testerDate: Date = Date()
+    @Binding var DateOfLastSeizure: Date
+    
+    //these are to be changed to the actual values
+    @Binding var MedicationName: String
+    @Binding var TimeSinceLastSeizure: Int
+    @Binding var MostRecentAward: String
+    @Binding var AwardsWon: Int
+    
+    @Binding var DaysTakenMedication: Int
+    
+    @Binding var Days: Int
+    @Binding var Hours: Int
+    @Binding var Minutes: Int
+    @Binding var Seconds: Int
+    
+    let fixed: [GridItem] = [.init(.fixed(175)), .init(.fixed(175))]
+    
+    var body: some View {
+        let displayBoxes = [ShowMedicationBool, TimeSinceSeizureBool, NumOfAwardsWonBool, MostRecentAwardBool, MedicationTakenToday]
+        ScrollView {
+            LazyVGrid(columns: fixed) {
+                ForEach(0..<displayBoxes.count) { Index in
+                    if(displayBoxes[Index] == true) {
+                        if(Index == 0) {
+                            MedicationBox(MedicationName: MedicationName)
+                                .onTapGesture {
+                                    self.isPresentedEditMedication.toggle()
+                                }
+                        }
+                        if(Index == 1) {
+                            TimeSinceSeizureBox(TimeSinceLastSeizure: TimeSinceLastSeizure, DateOfLastSeizure: DateOfLastSeizure, Days: $Days, Hours: $Hours, Minutes: $Minutes, Seconds: $Seconds)
+                                .onTapGesture {
+                                    self.isPresentedEditLastSeizure.toggle()
+                                }
+                        }
+                        if(Index == 2) {
+                            AwardsWonBox(AwardsWon: AwardsWon)
+                        }
+                        if(Index == 3) {
+                            RecentAwardBox(MostRecentAward: MostRecentAward)
+                        }
+                        if(Index == 4) {
+                            MedicationTakenBox(DaysTakenMedication: $DaysTakenMedication)
+                        }
+                    }
+                }
+            }
+        }
+        .sheet(isPresented: $isPresented3) {
+            EditHomePage(
+                ShowMedicationBool: $ShowMedicationBool,
+                TimeSinceSeizureBool: $TimeSinceSeizureBool,
+                NumOfAwardsWonBool: $NumOfAwardsWonBool,
+                MostRecentAwardBool: $MostRecentAwardBool,
+                MedicationTakenToday: $MedicationTakenToday,
+                isPresented3: $isPresented3)}
+        
+        .sheet(isPresented: $isPresentedEditMedication) {
+            EditMedication(
+                MedicationName: $MedicationName,
+                isPresentedEditMedication: $isPresentedEditMedication)}
+        
+        .sheet(isPresented: $isPresentedEditLastSeizure) {
+            EditTimeSinceSeizure(
+                TimeSinceLastSeizure: $TimeSinceLastSeizure,
+                DateOfLastSeizure: $DateOfLastSeizure,
+                isPresentedLastSeizure: $isPresentedEditLastSeizure)}
+        
+        .navigationTitle("Home")
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    self.isPresented3.toggle()
+                } label: {
+                    Text("Edit")}}
+        }
+    }
+}
+
+//#####################################
+//############ Box designs ############
+//#####################################
+
+struct MedicationBox: View {
+    
+    var MedicationName: String
+    
+    var body: some View {
+        RoundedRectangle(cornerRadius: 25)
+            .stroke(Color.accentColor, lineWidth: 4)
+            .frame(width: 175, height: 175)
+            .overlay (
+                VStack {
+                    Text("Medication:")
+                        .fontWeight(.bold)
+                    Text(MedicationName)
+                }
+            )
+    }
+}
+
+struct TimeSinceSeizureBox: View {
+    
+    var TimeSinceLastSeizure: Int
+    var DateOfLastSeizure: Date
+    
+    @State var IntSinceSeizure: Int = 0
+    
+    @Binding var Days: Int
+    @Binding var Hours: Int
+    @Binding var Minutes: Int
+    @Binding var Seconds: Int
+    
+    var body: some View {
+        RoundedRectangle(cornerRadius: 25)
+            .stroke(Color.accentColor, lineWidth: 4)
+            .frame(width: 175, height: 175)
+            .overlay (
+                VStack {
+                    Text("Time since seizure:")
+                        .fontWeight(.bold)
+                    if(TimeSinceLastSeizure > 0) {
+                        /*let IntSinceSeizure = TimeSinceLastSeizure
+                        
+                        let Days = IntSinceSeizure / (60*60*24)
+                        let DaysMod = IntSinceSeizure % (60*60*24)
+                        let Hours = DaysMod / (60*60)
+                        let HoursMod = IntSinceSeizure % (60*60)
+                        let Minutes = HoursMod / 60
+                        let MinutesMod = IntSinceSeizure % 60
+                        let Seconds = MinutesMod*/
+                        Text("\(Days):\(Hours):\(Minutes):\(Seconds)")
+                        //Text("\(IntSinceSeizure)")
+                    }
+                    else {
+                        Text("[tap to set]")
+                    }
+                    Button {
+                        IntSinceSeizure = TimeSinceLastSeizure
+                        
+                        Days = IntSinceSeizure / (60*60*24)
+                        let DaysMod = IntSinceSeizure % (60*60*24)
+                        Hours = DaysMod / (60*60)
+                        let HoursMod = IntSinceSeizure % (60*60)
+                        Minutes = HoursMod / 60
+                        let MinutesMod = IntSinceSeizure % 60
+                        Seconds = MinutesMod
+                    } label: {
+                        Text("Update")
+                            .foregroundColor(.accentColor)
+                    }
+                }
+            )
+    }
+}
+
+struct AwardsWonBox: View {
+    
+    var AwardsWon: Int
+    
+    var body: some View {
+        RoundedRectangle(cornerRadius: 25)
+            .stroke(Color.accentColor, lineWidth: 4)
+            .frame(width: 175, height: 175)
+            .overlay (
+                VStack {
+                    Text("Awards won:")
+                        .fontWeight(.bold)
+                    Text("\(AwardsWon)")
+                }
+            )
+    }
+}
+
+struct RecentAwardBox: View {
+    
+    var MostRecentAward: String
+    
+    var body: some View {
+        RoundedRectangle(cornerRadius: 25)
+            .stroke(Color.accentColor, lineWidth: 4)
+            .frame(width: 175, height: 175)
+            .overlay (
+                VStack {
+                    Text("Most recent award:")
+                        .fontWeight(.bold)
+                    Text(MostRecentAward)
+                }
+            )
+    }
+}
+
+struct MedicationTakenBox: View {
+    
+    @Binding var DaysTakenMedication: Int
+    
+    @State private var showingAlert = false
+    
+    @AppStorage("PressedToday") var PressedToday: Bool = false
+    
+    @State var TodaysDate = Date()
+    @State var JustTapped = ""
+    @AppStorage("LastTapped") var LastTapped: String = ""
+    
+    var body: some View {
+        if #available(iOS 15.0, *) {
+            RoundedRectangle(cornerRadius: 25)
+                .stroke(Color.accentColor, lineWidth: 4)
+                .frame(width: 175, height: 175)
+                .overlay (
+                    VStack {
+                        Text("Taken Medication Today?")
+                            .fontWeight(.bold)
+                            .multilineTextAlignment(.center)
+                        if(LastTapped == JustTapped) {
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(.red)
+                                .frame(width: 130, height: 25)
+                                .overlay(Text("Already Pressed"))
+                        } else {
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(.green)
+                                .frame(width: 100, height: 25)
+                                .overlay(Text("Not Pressed"))
+                        }
+                    }
+                )
+                .onTapGesture {
+                    let formatterDate = DateFormatter()
+                    formatterDate.dateFormat = "dd/MM/yyyy"
+                    JustTapped = formatterDate.string(from: TodaysDate)
+                    
+                    if(JustTapped != LastTapped) {
+                        DaysTakenMedication = DaysTakenMedication + 1
+                        print("Added 1, total is now: \(DaysTakenMedication)")
+                        LastTapped = JustTapped
+                        showingAlert = false
+                    } else {
+                        print("Already pressed today!")
+                        showingAlert = true
+                    }
+                }.alert("Already pressed today!", isPresented: $showingAlert) {
+                    Button("Okay", role: .cancel) {}
+                }
+        }
+    }
+}
+
+//#####################################
+//###### Other Structs / Classes ######
+//#####################################
+
+/*struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        HomePage()
+    }
+}*/
